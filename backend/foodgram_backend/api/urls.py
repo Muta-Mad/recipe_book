@@ -3,14 +3,14 @@ from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
 
-from .views import CustomUsersViewSet, AvatarView, TagsViewset, RecepeCreateView
+from .views import CustomUsersViewSet, AvatarView, TagsViewset, RecipeCreateView
 
 app_name = 'api'
 
 router_v1 = DefaultRouter()
 router_v1.register(r'users', CustomUsersViewSet, basename='users')
 router_v1.register('tags', TagsViewset, basename='tags')
-router_v1.register('recipes', RecepeCreateView, basename='recipes')
+router_v1.register('recipes', RecipeCreateView, basename='recipes')
 
 urlpatterns = [
     path('', include(router_v1.urls)),

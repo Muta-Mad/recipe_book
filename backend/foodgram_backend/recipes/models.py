@@ -12,12 +12,14 @@ class Recipe(models.Model):
         related_name='recipe',
     )
     name = models.CharField(max_length=50)
-    image = models.ImageField(upload_to='recipe/imgame/')
+    image = models.ImageField(upload_to='recipe/imgage/')
     description = models.TextField()
     ingredients = models.ManyToManyField('Ingredient', through='RecipeIngredient')
     tags = models.ManyToManyField('Tag')
     text = models.TextField(default="описание",)
     cooking_time = models.IntegerField()
+    is_favorited = models.BooleanField(default=False)
+    is_in_shopping_cart = models.BooleanField(default=False)
 
 
 class Tag(models.Model):

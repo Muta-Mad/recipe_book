@@ -36,8 +36,7 @@ class TagsViewset(ListRetrieveViewSet):
     serializer_class = TagSerializer
     pagination_class = None
       
-class RecepeCreateView(viewsets.ModelViewSet):
+class RecipeCreateView(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeCreateSerializer
-    pagination_class = None
-    permission_classe = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)

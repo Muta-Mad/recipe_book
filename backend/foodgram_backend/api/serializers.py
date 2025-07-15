@@ -13,11 +13,12 @@ class UsersSerializer(UserSerializer):
     """Сериализатор пользователя."""
 
     is_subscribed = serializers.BooleanField(default=False, read_only=True)
+    avatar = Base64ImageField()
 
     class Meta():
         model = CustomUser
         fields = (
-            'id', 'username', 'first_name', 'last_name', 'email', 'is_subscribed', 'avatar',
+            'email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', 'avatar',
         )
 
 
@@ -52,6 +53,20 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         model = RecipeIngredient
         fields = ('id', 'amount')
 
+class RecipeGet(serializers.ModelSerializer):
+    tags = TagSerializer(many=True, read_only=True)
+    author = UsersSerializer(read_only=True)
+    ingredients = RecipeIngredientSerializer(
+        many=True,
+        source='recipe_ingredients'
+    )
+    is_favorited = serializers.BooleanField(default=False, read_only=True) # ТРЕБУЕТ ДОРОБОТКИ!
+    is_in_shopping_cart = serializers.BooleanField(default=False, read_only=True) # ТРЕБУЕТ ДОРОБОТКИ!
+    class Meta:
+        model = Recipe
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited', 'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time',)
+
+
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
@@ -60,7 +75,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         source='recipe_ingredients'
     )
     tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
-    author = UserSerializer(read_only=True)
+    author = UsersSerializer(read_only=True)
 
     class Meta:
         model = Recipe
@@ -80,3 +95,27 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 ingredient=ingredient,
                 amount=ingredient_data['amount'])
         return recipe
+    
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags', None)
+        ingredients_data = validated_data.pop('recipe_ingredients', None)
+
+        if tags is not None:
+            instance.tags.set(tags)
+        
+        if ingredients_data is not None:
+            instance.recipe_ingredients.all().delete()
+
+            for ingredient_data in ingredients_data:
+                ingredient = get_object_or_404(Ingredient, pk=ingredient_data['id'])
+                RecipeIngredient.objects.create(
+                    recipe=instance,
+                    ingredient=ingredient,
+                    amount=ingredient_data['amount']
+                ) 
+        return instance
+    
+    def to_representation(self, instance):
+        return RecipeGet(instance, context={
+            'request': self.context.get('request')
+        }).data
