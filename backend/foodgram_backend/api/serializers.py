@@ -4,8 +4,9 @@ from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
-from users.models import CustomUser
+from users.models import CustomUser, Subscribe
 from recipes.models import Ingredient, Tag, Recipe, RecipeIngredient
 
 
@@ -104,7 +105,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             instance.tags.set(tags)
         
         if ingredients_data is not None:
-            instance.recipe_ingredients.all().delete()
+            RecipeIngredient.objects.filter(recipe=instance).delete()
 
             for ingredient_data in ingredients_data:
                 ingredient = get_object_or_404(Ingredient, pk=ingredient_data['id'])
@@ -119,3 +120,70 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return RecipeGet(instance, context={
             'request': self.context.get('request')
         }).data
+
+
+class IngredientsSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Ingredient
+        fields = ('id', 'name', 'measurement_unit',)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+# class SubscribeSerializer(serializers.ModelSerializer):
+#     user = serializers.StringRelatedField(
+#         read_only=True, default=serializers.CurrentUserDefault())
+#     author = serializers.SlugRelatedField(
+#         slug_field='username',
+#         queryset=CustomUser.objects.all()
+#     )
+
+#     class Meta:
+#         model = Subscribe
+#         fields = ('user', 'author')
+#         validators = [
+#             UniqueTogetherValidator(
+#                 queryset=Subscribe.objects.all(),
+#                 fields=('user', 'author')
+#             )
+#         ]
+
+#     def validate_subscription(self, value):
+#         user = self.context['request'].user
+#         if value == user:
+#             raise serializers.ValidationError(
+#                 'Нельзя подписаться на самого себя!'
+#             )
+#         return value

@@ -4,9 +4,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from recipes.models import Tag, Recipe
+from recipes.models import Tag, Recipe, Ingredient
 from users.models import CustomUser
-from .serializers import UsersSerializer, CustomAvatarSerializer, TagSerializer, RecipeCreateSerializer
+from .serializers import (UsersSerializer, CustomAvatarSerializer, TagSerializer, RecipeCreateSerializer, IngredientsSerializer)
 from .permission import CustomUsersPermission
 from .mixins import ListRetrieveViewSet
 
@@ -31,7 +31,7 @@ class AvatarView(APIView):
             user.avatar.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class TagsViewset(ListRetrieveViewSet):
+class TagsViewSet(ListRetrieveViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
@@ -40,3 +40,11 @@ class RecipeCreateView(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeCreateSerializer
     permission_classes = (IsAuthenticated,)
+
+
+class IngredientsViewSet(ListRetrieveViewSet):
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientsSerializer
+    pagination_class = None
+
+ 

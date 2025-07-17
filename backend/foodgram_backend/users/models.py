@@ -10,3 +10,27 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+
+
+class Subscribe(models.Model):
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE,
+        related_name='subscriptions',
+    )
+    author = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE,
+        related_name='subscribers',
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name='%(app_label)s_%(class)s_unique_subscription',
+                fields=['user', 'author'],
+            ),
+            models.CheckConstraint(
+                name='%(app_label)s_%(class)s_prevent_self_subscription',
+                check=~models.Q(user=models.F('author'))
+            )
+        ]
+
