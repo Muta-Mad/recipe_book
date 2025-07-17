@@ -9,10 +9,10 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='recipe',
+        related_name='recipes',
     )
     name = models.CharField(max_length=50)
-    image = models.ImageField(upload_to='recipe/imgage/')
+    image = models.ImageField(upload_to='recipe/images/')
     description = models.TextField()
     ingredients = models.ManyToManyField('Ingredient', through='RecipeIngredient')
     tags = models.ManyToManyField('Tag')

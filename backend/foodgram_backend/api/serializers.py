@@ -9,11 +9,10 @@ from rest_framework.validators import UniqueTogetherValidator
 from users.models import CustomUser, Subscribe
 from recipes.models import Ingredient, Tag, Recipe, RecipeIngredient
 
-
 class UsersSerializer(UserSerializer):
     """Сериализатор пользователя."""
 
-    is_subscribed = serializers.BooleanField(default=False, read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
     avatar = Base64ImageField()
 
     class Meta():
@@ -21,6 +20,14 @@ class UsersSerializer(UserSerializer):
         fields = (
             'email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', 'avatar',
         )
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Subscribe.objects.filter(
+                user=request.user,
+                author=obj
+            ).exists()
+        return False
 
 
 class CustomUsersCreateSerializer(UserCreateSerializer):
@@ -117,9 +124,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return instance
     
     def to_representation(self, instance):
-        return RecipeGet(instance, context={
-            'request': self.context.get('request')
-        }).data
+        return RecipeGet(instance, context=self.context).data
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
@@ -127,63 +132,47 @@ class IngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit',)
+     
+
+class SubscribeSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Subscribe
+        fields = ('user', 'author')
 
 
+class GetSubscribeSerializer(serializers.ModelSerializer):
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = ('email', 'id', 'username', 'first_name', 'last_name', 
+                 'is_subscribed', 'avatar', 'recipes', 'recipes_count')
+
+    def get_recipes(self, obj):
+        recipes = obj.recipes.all()
+        return ShortRecipeSerializer(recipes, context=self.context, many=True).data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Subscribe.objects.filter(user=request.user, author=obj).exists()
+        return False
 
 
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-# class SubscribeSerializer(serializers.ModelSerializer):
-#     user = serializers.StringRelatedField(
-#         read_only=True, default=serializers.CurrentUserDefault())
-#     author = serializers.SlugRelatedField(
-#         slug_field='username',
-#         queryset=CustomUser.objects.all()
-#     )
-
-#     class Meta:
-#         model = Subscribe
-#         fields = ('user', 'author')
-#         validators = [
-#             UniqueTogetherValidator(
-#                 queryset=Subscribe.objects.all(),
-#                 fields=('user', 'author')
-#             )
-#         ]
-
-#     def validate_subscription(self, value):
-#         user = self.context['request'].user
-#         if value == user:
-#             raise serializers.ValidationError(
-#                 'Нельзя подписаться на самого себя!'
-#             )
-#         return value
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        )
