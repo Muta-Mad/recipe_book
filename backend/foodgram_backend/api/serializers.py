@@ -5,9 +5,10 @@ from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+from django.core.exceptions import ValidationError
 
 from users.models import CustomUser, Subscribe
-from recipes.models import Ingredient, Tag, Recipe, RecipeIngredient
+from recipes.models import Ingredient, Tag, Recipe, RecipeIngredient, Favorite
 
 class UsersSerializer(UserSerializer):
     """Сериализатор пользователя."""
@@ -68,13 +69,24 @@ class RecipeGet(serializers.ModelSerializer):
         many=True,
         source='recipe_ingredients'
     )
-    is_favorited = serializers.BooleanField(default=False, read_only=True) # ТРЕБУЕТ ДОРОБОТКИ!
-    is_in_shopping_cart = serializers.BooleanField(default=False, read_only=True) # ТРЕБУЕТ ДОРОБОТКИ!
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited', 'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time',)
 
-
+    def get_is_favorited(self, obj):
+        user = self.context.get('request').user
+        if not user.is_authenticated:
+            return False
+        return Recipe.objects.filter(favor_recipe__user=user, id=obj.id).exists()
+    
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context.get('request').user
+        if not user.is_authenticated:
+            return False
+        return Recipe.objects.filter(shpg_recipe__user=user, id=obj.id).exists()
+    
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
@@ -176,3 +188,4 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
             'image',
             'cooking_time'
         )
+

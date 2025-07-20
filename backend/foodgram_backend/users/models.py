@@ -15,7 +15,7 @@ class CustomUser(AbstractUser):
 class Subscribe(models.Model):
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE,
-        related_name='subscriptions',
+        related_name='subscribing',
     )
     author = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE,

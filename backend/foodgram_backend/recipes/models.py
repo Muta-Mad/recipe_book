@@ -47,3 +47,24 @@ class RecipeIngredient(models.Model):
     )
     amount = models.IntegerField()
 
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        CustomUser,
+        related_name='favor_user',
+        on_delete=models.CASCADE)
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='favor_recipe',
+        on_delete=models.CASCADE)
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        CustomUser,
+        related_name='shpg_user',
+        on_delete=models.CASCADE)
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='shpg_recipe',
+        on_delete=models.CASCADE)
