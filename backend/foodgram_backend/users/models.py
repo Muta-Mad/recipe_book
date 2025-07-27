@@ -6,7 +6,8 @@ class CustomUser(AbstractUser):
     """Кастомная модель пользователя."""
 
     avatar = models.ImageField(upload_to='users/image/', blank=True, null=True)
-
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
     email = models.EmailField(unique=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']

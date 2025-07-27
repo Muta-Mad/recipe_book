@@ -8,7 +8,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from django.core.exceptions import ValidationError
 
 from users.models import CustomUser, Subscribe
-from recipes.models import Ingredient, Tag, Recipe, RecipeIngredient, Favorite
+from recipes.models import Ingredient, Tag, Recipe, RecipeIngredient, Favorite, ShoppingCart
 
 class UsersSerializer(UserSerializer):
     """Сериализатор пользователя."""
@@ -151,6 +151,22 @@ class SubscribeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscribe
         fields = ('user', 'author')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Subscribe.objects.all(),
+                fields=('user', 'author'),
+                message='Вы уже подписаны на этого пользователя!'
+            )
+        ]
+    def validate_author(self, value):
+            user = self.context.get('request').user
+            if value == user:
+                raise serializers.ValidationError(
+                     'Нельзя подписаться на самого себя!'
+                )
+            return value
+    def to_representation(self, instance):
+        return GetSubscribeSerializer(instance.author, context=self.context).data
 
 
 class GetSubscribeSerializer(serializers.ModelSerializer):
@@ -189,3 +205,35 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
+class FavoriteSerializer(serializers.ModelSerializer):
+     
+    class Meta:
+        model = Favorite
+        fields = ('user', 'recipe')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Favorite.objects.all(),
+                fields=('user', 'recipe'),
+                message='Рецепт уже есть в списке избранных!'
+            )
+        ]
+
+    def to_representation(self, instance):
+        return ShortRecipeSerializer(instance.recipe, context=self.context).data
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+     
+    class Meta:
+        model = ShoppingCart
+        fields = ('user', 'recipe')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=ShoppingCart.objects.all(),
+                fields=('user', 'recipe'),
+                message='Рецепт уже есть в списке покупок!'
+            )
+        ]
+
+        
+    def to_representation(self, instance):
+        return ShortRecipeSerializer(instance.recipe, context=self.context).data
