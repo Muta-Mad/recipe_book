@@ -143,6 +143,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     amount=ingredient_data['amount']
                 ) 
         return instance
+
+    def validate_image(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'обязательное поле.'
+            )
+        return value
     
     def to_representation(self, instance):
         return RecipeGet(instance, context=self.context).data
