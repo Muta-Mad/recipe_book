@@ -18,7 +18,7 @@ from .serializers import (
 from .permission import CustomUsersPermission
 from .mixins import ListRetrieveViewSet
 from .paginator import CustomPageNumberPagination
-from .filters import IngredientFilter
+from .filters import IngredientFilter, RecipeFilter
 
 PAGE_SIZE = 10
 
@@ -107,7 +107,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     page_size = 10
     filter_backends = (DjangoFilterBackend,)
-    pagination_class = PageNumberPagination
+    filterset_class = RecipeFilter
+    pagination_class = CustomPageNumberPagination
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):
