@@ -1,5 +1,6 @@
-from django_filters import FilterSet, CharFilter, NumberFilter
-from recipes.models import Ingredient, Recipe
+from django_filters import FilterSet, CharFilter, NumberFilter, filters
+
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientFilter(FilterSet):
@@ -11,7 +12,11 @@ class IngredientFilter(FilterSet):
 
 
 class RecipeFilter(FilterSet):
-    tags = NumberFilter(field_name='tags__id')
+    tags = filters.ModelMultipleChoiceFilter(
+        queryset=Tag.objects.all(),
+        field_name='tags__slug',
+        to_field_name='slug'
+    )
     author = NumberFilter(field_name='author__id')
     is_favorited = NumberFilter(method='filter_favorite')
     is_in_shopping_cart = NumberFilter(method='filter_cart')

@@ -15,7 +15,7 @@ class Recipe(models.Model):
     image = models.ImageField(upload_to='recipe/images/')
     description = models.TextField()
     ingredients = models.ManyToManyField('Ingredient', through='RecipeIngredient')
-    tags = models.ManyToManyField('Tag')
+    tags = models.ManyToManyField('Tag', related_name='recipes')
     text = models.TextField(default="описание",)
     cooking_time = models.IntegerField()
     is_favorited = models.BooleanField(default=False)
