@@ -61,11 +61,15 @@ class TagSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
-    amount = serializers.IntegerField()
-
+    name = serializers.CharField(source='ingredient.name', read_only=True)
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit', 
+        read_only=True
+    )
+    
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'amount')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 class RecipeGet(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
@@ -100,11 +104,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         source='recipe_ingredients'
     )
     tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
-    author = UsersSerializer(read_only=True)
+
 
     class Meta:
         model = Recipe
-        fields = ('id', 'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time', 'author')
+        fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time',)
 
     def create(self, validated_data):
         author = self.context.get('request').user
@@ -185,8 +189,15 @@ class GetSubscribeSerializer(serializers.ModelSerializer):
                  'is_subscribed', 'avatar', 'recipes', 'recipes_count')
 
     def get_recipes(self, obj):
-        recipes = obj.recipes.all()
-        return ShortRecipeSerializer(recipes, context=self.context, many=True).data
+        recipes_limit = self.context.get('request').query_params.get('recipes_limit')
+        queryset = obj.recipes.all()
+        if recipes_limit:
+            queryset = queryset[:int(recipes_limit)]
+        return ShortRecipeSerializer(
+            queryset, 
+            many=True,
+            context=self.context
+        ).data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -194,7 +205,10 @@ class GetSubscribeSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return Subscribe.objects.filter(user=request.user, author=obj).exists()
+            return Subscribe.objects.filter(
+                user=request.user, 
+                author=obj
+            ).exists()
         return False
 
 

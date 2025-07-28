@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly 
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,6 +17,8 @@ from .serializers import (
 )
 from .permission import CustomUsersPermission
 from .mixins import ListRetrieveViewSet
+from .paginator import CustomPageNumberPagination
+from .filters import IngredientFilter
 
 PAGE_SIZE = 10
 
@@ -24,6 +26,7 @@ class CustomUsersViewSet(UserViewSet):
     serializer_class = UsersSerializer
     queryset = CustomUser.objects.all()
     permission_classes = (CustomUsersPermission,)
+    pagination_class = CustomPageNumberPagination
 
     @action(
         methods=('PUT', 'DELETE'),
@@ -77,24 +80,18 @@ class CustomUsersViewSet(UserViewSet):
         methods=('GET',),
         detail=False,
         url_path='subscriptions',
+        pagination_class=CustomPageNumberPagination
     )
     def subscriptions(self, request):
         followers = CustomUser.objects.filter(
             subscribers__user=request.user
         )
-        serializer = GetSubscribeSerializer(followers, many=True)
-        return Response(serializer.data)
-
-
-class GetSubscription(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        followers = CustomUser.objects.filter(
-            subscribing__author=request.user
-        )
-        serializer = GetSubscribeSerializer(followers, many=True)
-        return Response(serializer.data)
+        page = self.paginate_queryset(followers)
+        if page is not None:
+            serializer = GetSubscribeSerializer(
+                page, many=True, context={'request': request}
+            )
+        return self.get_paginated_response(serializer.data)
 
 
 class TagViewSet(ListRetrieveViewSet):
@@ -114,9 +111,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            return RecipeCreateSerializer
-        return RecipeGet
+        if self.request.method in permissions.SAFE_METHODS:
+            return RecipeGet
+        return RecipeCreateSerializer
 
     @action(
         methods=('GET',),
@@ -188,3 +185,5 @@ class IngredientsViewSet(ListRetrieveViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
     pagination_class = None
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
