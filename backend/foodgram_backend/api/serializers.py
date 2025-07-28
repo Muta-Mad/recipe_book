@@ -42,11 +42,16 @@ class CustomUsersCreateSerializer(UserCreateSerializer):
 
 
 class CustomAvatarSerializer(serializers.ModelSerializer):
-    avatar = Base64ImageField()
+    avatar = Base64ImageField(required=True)
 
     class Meta:
         model = CustomUser
         fields = ('avatar',)
+
+    def validate(self, attrs):
+        if 'avatar' not in attrs:
+            raise serializers.ValidationError({'avatar': 'Обязательное поле.'})
+        return attrs
 
 
 class TagSerializer(serializers.ModelSerializer):
