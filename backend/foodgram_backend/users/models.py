@@ -12,8 +12,16 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return f'{self.get_full_name()} ({self.email})'
+
 
 class Subscribe(models.Model):
+    """Модель для подписок."""
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE,
         related_name='subscribing',
@@ -24,6 +32,8 @@ class Subscribe(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
                 name='%(app_label)s_%(class)s_unique_subscription',
@@ -35,3 +45,5 @@ class Subscribe(models.Model):
             )
         ]
 
+    def __str__(self) -> str:
+        return f'{self.user} подписан на {self.author}'

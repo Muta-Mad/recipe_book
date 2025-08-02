@@ -1,11 +1,11 @@
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
+from django_filters.rest_framework import DjangoFilterBackend
+from django.http import HttpResponse
 from rest_framework import status, viewsets, permissions
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly 
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 
 from recipes.models import Tag, Recipe, Ingredient, Favorite, ShoppingCart
@@ -13,19 +13,21 @@ from users.models import CustomUser, Subscribe
 from .serializers import (
     UsersSerializer, CustomAvatarSerializer,
     TagSerializer, RecipeCreateSerializer,
-    IngredientsSerializer, GetSubscribeSerializer, ShoppingCartSerializer, FavoriteSerializer, SubscribeSerializer, RecipeGet
+    IngredientsSerializer, GetSubscribeSerializer,
+    ShoppingCartSerializer, FavoriteSerializer,
+    SubscribeSerializer, RecipeGet
 )
-from .permission import CustomUsersPermission
+from .permission import IsAuthenticatedAuthorOrReadOnly
 from .mixins import ListRetrieveViewSet
 from .paginator import CustomPageNumberPagination
 from .filters import IngredientFilter, RecipeFilter
 
-PAGE_SIZE = 10
 
 class CustomUsersViewSet(UserViewSet):
+    """ViewSet для работы с пользователями: регистрация, аватар, подписки."""
     serializer_class = UsersSerializer
     queryset = CustomUser.objects.all()
-    permission_classes = (CustomUsersPermission,)
+    permission_classes = (IsAuthenticatedAuthorOrReadOnly,)
     pagination_class = CustomPageNumberPagination
 
     @action(
@@ -36,7 +38,11 @@ class CustomUsersViewSet(UserViewSet):
     def avatar(self, request):
         user = request.user
         if request.method == 'PUT':
-            serializer = CustomAvatarSerializer(instance=user, data=request.data, partial=True)
+            serializer = CustomAvatarSerializer(
+                instance=user,
+                data=request.data,
+                partial=True
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response({'avatar': user.avatar.url})
@@ -63,6 +69,7 @@ class CustomUsersViewSet(UserViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             subscription = Subscribe.objects.filter(
                 user=request.user,
@@ -95,6 +102,7 @@ class CustomUsersViewSet(UserViewSet):
 
 
 class TagViewSet(ListRetrieveViewSet):
+    """ViewSet для получения тегов."""
     permission_classes = (AllowAny,)
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -102,10 +110,10 @@ class TagViewSet(ListRetrieveViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """ViewSet для рецептов + корзина избранное."""
     queryset = Recipe.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedAuthorOrReadOnly,)
     pagination_class = PageNumberPagination
-    page_size = 10
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = CustomPageNumberPagination
@@ -120,9 +128,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=('GET',),
         detail=True,
         url_path='get-link',
+        permission_classes=(AllowAny,)
     )
     def get_short_link(self, request, pk):
-        """Генерация короткой ссылки на рецепт."""
+        """Выдает короткую ссылку на рецепт."""
         get_object_or_404(Recipe, id=pk)
         link = request.build_absolute_uri(f'/recipes/{pk}/')
         return Response({'short-link': link}, status=status.HTTP_200_OK)
@@ -142,6 +151,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             cart = ShoppingCart.objects.filter(
                 user=request.user,
@@ -169,9 +179,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
         if request.method == 'DELETE':
-            favorite = Favorite.objects.filter(user=request.user, recipe=recipe)
+            favorite = Favorite.objects.filter(
+                user=request.user, recipe=recipe
+            )
             if not favorite.exists():
                 return Response(
                     {'detail': 'Рецепт не был в избранном'},
@@ -180,8 +191,37 @@ class RecipeViewSet(viewsets.ModelViewSet):
             favorite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(
+        methods=('GET',),
+        permission_classes=(IsAuthenticated,),
+        detail=False,
+        url_path='download_shopping_cart'
+    )
+    def download_shopping_cart(self, request):
+        cart_recipes = Recipe.objects.filter(shpg_recipe__user=request.user)
+        ingredients = {}
+        for recipe in cart_recipes:
+            for recipe_ingredient in recipe.recipe_ingredients.all():
+                name = recipe_ingredient.ingredient.name
+                unit = recipe_ingredient.ingredient.measurement_unit
+                amount = recipe_ingredient.amount
+                ingredient_key = (name, unit)
+                if ingredient_key in ingredients:
+                    ingredients[ingredient_key] += amount
+                else:
+                    ingredients[ingredient_key] = amount
+        shopping_list = '\n'.join(
+            f'- {name}: {amount} {unit}'
+            for (name, unit), amount in ingredients.items()
+        )
+        response = HttpResponse(shopping_list, content_type='text/plain')
+        response[
+            'Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+        return response
+
 
 class IngredientsViewSet(ListRetrieveViewSet):
+    """ViewSet для ингредиентов."""
     permission_classes = (AllowAny,)
     queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer

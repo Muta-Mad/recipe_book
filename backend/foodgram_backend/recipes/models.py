@@ -4,7 +4,7 @@ from users.models import CustomUser
 
 
 class Recipe(models.Model):
-    """Модель рецептов."""
+    """Модель рецепта с основными данными и связями."""
 
     author = models.ForeignKey(
         CustomUser,
@@ -13,33 +13,43 @@ class Recipe(models.Model):
     )
     name = models.CharField(max_length=50)
     image = models.ImageField(upload_to='recipe/images/')
-    description = models.TextField()
-    ingredients = models.ManyToManyField('Ingredient', through='RecipeIngredient')
+    ingredients = models.ManyToManyField(
+        'Ingredient', through='RecipeIngredient'
+    )
     tags = models.ManyToManyField('Tag', related_name='recipes')
-    text = models.TextField(default="описание",)
+    text = models.TextField(default='')
     cooking_time = models.IntegerField()
-    is_favorited = models.BooleanField(default=False)
-    is_in_shopping_cart = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
 
 class Tag(models.Model):
-    """Модель Тегов."""
+    """Модель тега."""
 
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=75, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Ingredient(models.Model):
-    """Модель Ингридиентов."""
+    """Модель Ингредиента."""
 
     name = models.CharField(max_length=50)
     measurement_unit = models.CharField(max_length=25)
 
+    def __str__(self):
+        return self.name
+
 
 class RecipeIngredient(models.Model):
-    """Промежуточная модель для связи Recipe-Ingredient."""
+    """Связующая модель рецепта и ингредиента."""
 
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='recipe_ingredients')
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name='recipe_ingredients'
+    )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
@@ -49,6 +59,7 @@ class RecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
+    """Модель для хранения избранных рецептов."""
     user = models.ForeignKey(
         CustomUser,
         related_name='favor_user',
@@ -60,6 +71,7 @@ class Favorite(models.Model):
 
 
 class ShoppingCart(models.Model):
+    """Модель корзины покупок."""
     user = models.ForeignKey(
         CustomUser,
         related_name='shpg_user',
