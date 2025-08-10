@@ -120,8 +120,6 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
-        script: |
-          rm -f ~/foodgram/docker-compose.production.yml
         source: "docker-compose.production.yml"
         target: "foodgram"
     - name: Executing remote ssh commands to deploy
