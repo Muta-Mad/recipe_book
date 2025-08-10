@@ -1,13 +1,11 @@
-"""Сериализаторы Пользователя."""
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from users.models import CustomUser, Subscribe
-from recipes.models import (
-    Ingredient, Tag, Recipe, RecipeIngredient, Favorite, ShoppingCart
-)
 
 
 class UsersSerializer(UserSerializer):

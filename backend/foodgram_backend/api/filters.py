@@ -1,4 +1,4 @@
-from django_filters import FilterSet, CharFilter, NumberFilter, filters
+from django_filters import CharFilter, FilterSet, NumberFilter, filters
 
 from recipes.models import Ingredient, Recipe, Tag
 
