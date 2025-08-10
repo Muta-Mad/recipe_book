@@ -9,10 +9,10 @@ services:
     image: postgres:13
     volumes:
       - pg_data:/var/lib/postgresql/data
-    env_file: ./.env
+    env_file: ../.env
   backend:
     image: t1max/foodgram_backend
-    env_file: ./.env
+    env_file: ../.env
     depends_on:
       - db
     volumes:
@@ -20,7 +20,7 @@ services:
       - media:/app/media/
   frontend:
     image: t1max/foodgram_frontend
-    env_file: ./.env
+    env_file: ../.env
     depends_on:
       - backend
     command: cp -r /app/build/. /static/
@@ -28,7 +28,7 @@ services:
       - static:/static/
   nginx:
     image: t1max/foodgram_nginx
-    env_file: ./.env
+    env_file: ../.env
     depends_on:
       - frontend
       - backend
