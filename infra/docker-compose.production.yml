@@ -11,7 +11,7 @@ services:
       - pg_data:/var/lib/postgresql/data
     env_file: ../.env
   backend:
-    build: ../backend/foodgram_backend/
+    image: t1max/foodgram_backend
     env_file: ../.env
     depends_on:
       - db
@@ -19,7 +19,7 @@ services:
       - static:/backend_static
       - media:/app/media/
   frontend:
-    build: ../frontend
+    image: t1max/foodgram_frontend
     env_file: ../.env
     depends_on:
       - backend
@@ -27,10 +27,11 @@ services:
     volumes:
       - static:/static/
   nginx:
-    build: .
+    image: t1max/foodgram_nginx
     env_file: ../.env
     depends_on:
       - frontend
+      - backend
     ports:
       - "80:80"
     volumes:
