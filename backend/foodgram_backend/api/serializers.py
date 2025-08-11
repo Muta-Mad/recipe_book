@@ -206,19 +206,19 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             сhecked_tags.append(tag_id)
         return tags
 
-    def validate_image(self, value):
-        if not value:
-            raise serializers.ValidationError(
-                'Обязательное поле.'
-            )
-        return value
+    # def validate_image(self, value):
+    #     if not value:
+    #         raise serializers.ValidationError(
+    #             'Обязательное поле.'
+    #         )
+    #     return value
 
-    def validate_cooking_time(self, value):
-        if value < 1:
-            raise serializers.ValidationError(
-                'Время приготовление должно быть > 1'
-            )
-        return value
+    # def validate_cooking_time(self, value):
+    #     if value < 1:
+    #         raise serializers.ValidationError(
+    #             'Время приготовление должно быть > 1'
+    #         )
+    #     return value
 
     def to_representation(self, instance):
         return RecipeGet(instance, context=self.context).data
