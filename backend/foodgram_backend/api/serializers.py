@@ -156,24 +156,20 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time
-        )
-        if 'image' in validated_data:
-            instance.image = validated_data['image']
-        if 'tags' in validated_data:
-            instance.tags.set(validated_data['tags'])
-        if 'ingredients' in validated_data:
-            instance.ingredients.clear()
-            for ingredient_data in validated_data['ingredients']:
+        tags = validated_data.pop('tags', None)
+        ingredients_data = validated_data.pop('recipe_ingredients', None)
+
+        if tags is not None:
+            instance.tags.set(tags)
+        if ingredients_data is not None:
+            RecipeIngredient.objects.filter(recipe=instance).delete()
+
+            for ingredient_data in ingredients_data:
                 RecipeIngredient.objects.create(
                     recipe=instance,
                     ingredient_id=ingredient_data['id'],
                     amount=ingredient_data['amount']
                 )
-        instance.save()
         return instance
 
     def validate_ingredients(self, ingredients):
@@ -226,9 +222,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def to_representation(self, instance):
-        return RecipeGet(instance, context=self.context).data
-
     def validate(self, data):
         if self.context['request'].method == 'PATCH':
             if 'recipe_ingredients' not in data:
@@ -236,6 +229,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             if 'tags' not in data:
                 raise serializers.ValidationError('Обязательное поле.')
         return data
+
+    def to_representation(self, instance):
+        return RecipeGet(instance, context=self.context).data
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
