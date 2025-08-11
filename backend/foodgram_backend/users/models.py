@@ -5,10 +5,23 @@ from django.db import models
 class CustomUser(AbstractUser):
     """Кастомная модель пользователя."""
 
-    avatar = models.ImageField(upload_to='users/image/', blank=True, null=True)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    email = models.EmailField(unique=True)
+    avatar = models.ImageField(
+        upload_to='users/image/',
+        blank=True,
+        null=True,
+        verbose_name='Аватар')
+    first_name = models.CharField(
+        max_length=150,
+        verbose_name='Имя'
+    )
+    last_name = models.CharField(
+        max_length=150,
+        verbose_name='Фамилия'
+    )
+    email = models.EmailField(
+        unique=True,
+        verbose_name='Емаил'
+    )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
@@ -16,19 +29,20 @@ class CustomUser(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
-    def __str__(self):
-        return f'{self.get_full_name()} ({self.email})'
-
 
 class Subscribe(models.Model):
     """Модель для подписок."""
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE,
+        CustomUser,
+        on_delete=models.CASCADE,
         related_name='subscribing',
+        verbose_name='Подписчик'
     )
     author = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE,
+        CustomUser,
+        on_delete=models.CASCADE,
         related_name='subscribers',
+        verbose_name='Автор'
     )
 
     class Meta:
@@ -44,6 +58,3 @@ class Subscribe(models.Model):
                 check=~models.Q(user=models.F('author'))
             )
         ]
-
-    def __str__(self) -> str:
-        return f'{self.user} подписан на {self.author}'
