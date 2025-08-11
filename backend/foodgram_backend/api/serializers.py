@@ -225,13 +225,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return RecipeGet(instance, context=self.context).data
 
-    def validate(self, data):
-        if self.context['request'].method == 'PATCH':
-            if 'recipe_ingredients' not in data:
-                raise serializers.ValidationError('Обязательное поле.')
-            if 'tags' not in data:
-                raise serializers.ValidationError('Обязательное поле.')
-        return data
+    # def validate(self, data):
+    #     if self.context['request'].method == 'PATCH':
+    #         if 'recipe_ingredients' not in data:
+    #             raise serializers.ValidationError('Обязательное поле.')
+    #         if 'tags' not in data:
+    #             raise serializers.ValidationError('Обязательное поле.')
+    #     return data
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
