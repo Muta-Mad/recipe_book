@@ -195,10 +195,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         author = self.context.get('request').user
         tags = validated_data.pop('tags')
         ingredients_data = validated_data.pop('ingredients')
-
         recipe = Recipe.objects.create(author=author, **validated_data)
         recipe.tags.set(tags)
-
         for ingredient_data in ingredients_data:
             RecipeIngredient.objects.create(
                 recipe=recipe,
@@ -209,23 +207,17 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-
-        ingredients_data = validated_data.pop('ingredients', [])
-        tags_data = validated_data.pop('tags', [])
+        ingredients = validated_data.pop('ingredients', [])
+        tags = validated_data.pop('tags', [])
         instance.ingredients.clear()
-
-        for ingredient_data in ingredients_data:
+        for ingredient in ingredients:
             RecipeIngredient.objects.create(
                 recipe=instance,
-                ingredient_id=ingredient_data['id'],
-                amount=ingredient_data['amount'],
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount'],
             )
-        instance.tags.set(tags_data)
+        instance.tags.set(tags)
         return super().update(instance, validated_data)
-
-    def to_representation(self, instance):
-        """Возвращаем данные в формате для чтения."""
-        return RecipeGet(instance, context=self.context).data
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
