@@ -147,17 +147,17 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         fields = ('ingredients', 'tags', 'image',
                   'name', 'text', 'cooking_time')
 
-    def validate(self, data):
-        """Основная валидация данных."""
-        if 'ingredients' not in data:
+    def validate(self, attrs):
+        if 'ingredients' not in attrs:
             raise serializers.ValidationError(
-                {'ingredients': 'Обязательное полеingredients.'}
+                {'ingredients': 'Обязательное поле.'}
             )
-        if 'tags' not in data:
+
+        if 'tags' not in attrs:
             raise serializers.ValidationError(
-                {'tags': 'Обязательное полеtags.'}
+                {'tags': 'Обязательное поле.'}
             )
-        return data
+        return attrs
 
     def validate_tags(self, value):
         """Валидация тегов."""
