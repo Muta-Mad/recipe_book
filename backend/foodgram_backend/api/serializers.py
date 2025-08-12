@@ -151,11 +151,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         """Основная валидация данных."""
         if 'ingredients' not in data:
             raise serializers.ValidationError(
-                {'ingredients': 'Обязательное поле.'}
+                {'ingredients': 'Обязательное полеingredients.'}
             )
         if 'tags' not in data:
             raise serializers.ValidationError(
-                {'tags': 'Обязательное поле.'}
+                {'tags': 'Обязательное полеtags.'}
             )
         return data
 
