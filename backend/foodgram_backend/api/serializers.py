@@ -126,7 +126,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=True)
     ingredients = RecipeIngredientSerializer(
         many=True,
-        source='recipe_ingredients',
         required=True
     )
     tags = serializers.PrimaryKeyRelatedField(
@@ -195,7 +194,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         """Создание рецепта."""
         author = self.context.get('request').user
         tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('recipe_ingredients')
+        ingredients_data = validated_data.pop('recipe')
 
         recipe = Recipe.objects.create(author=author, **validated_data)
         recipe.tags.set(tags)
@@ -212,7 +211,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         tags = validated_data.pop('tags', None)
-        ingredients_data = validated_data.pop('recipe_ingredients', None)
+        ingredients_data = validated_data.pop('recipe', None)
 
         if tags is not None:
             instance.tags.set(tags)
