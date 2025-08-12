@@ -184,13 +184,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     'Ингредиенты не должны повторяться!')
             checked_ids.append(ing_id)
 
-        for ingredient in ingredients:
-            try:
-                Ingredient.objects.get(id=ingredient['id'])
-            except Ingredient.DoesNotExist:
-                raise serializers.ValidationError(
-                    'У нас такого ингридиента нет'
-                )
+        # for ingredient in ingredients:
+        #     try:
+        #         Ingredient.objects.get(id=ingredient['id'])
+        #     except Ingredient.DoesNotExist:
+        #         raise serializers.ValidationError(
+        #             'У нас такого ингридиента нет'
+        #         )
         return ingredients
 
     def validate_tags(self, tags):
