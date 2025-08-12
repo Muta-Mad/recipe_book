@@ -165,6 +165,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Поле не должно быть пустым.'
             )
+
         checked_tags = []
         for tag in value:
             if tag.id in checked_tags:
@@ -180,6 +181,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Поле не должно быть пустым.'
             )
+
         checked_ids = []
         for ingredient in value:
             if ingredient['id'] in checked_ids:
@@ -189,24 +191,21 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             checked_ids.append(ingredient['id'])
         return value
 
-    def _process_ingredients(self, recipe, ingredients_data):
-        """Обработка ингредиентов рецепта."""
-        RecipeIngredient.objects.filter(recipe=recipe).delete()
+    def create(self, validated_data):
+        """Создание рецепта."""
+        author = self.context.get('request').user
+        tags = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('recipe_ingredients')
+
+        recipe = Recipe.objects.create(author=author, **validated_data)
+        recipe.tags.set(tags)
+
         for ingredient_data in ingredients_data:
             RecipeIngredient.objects.create(
                 recipe=recipe,
                 ingredient_id=ingredient_data['id'],
                 amount=ingredient_data['amount']
             )
-
-    def create(self, validated_data):
-        """Создание рецепта."""
-        author = self.context.get('request').user
-        tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('recipe_ingredients')
-        recipe = Recipe.objects.create(author=author, **validated_data)
-        recipe.tags.set(tags)
-        self._process_ingredients(recipe, ingredients_data)
 
         return recipe
 
@@ -219,10 +218,18 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             instance.tags.set(tags)
 
         if ingredients_data is not None:
-            self._process_ingredients(instance, ingredients_data)
+
+            RecipeIngredient.objects.filter(recipe=instance).delete()
+            for ingredient_data in ingredients_data:
+                RecipeIngredient.objects.create(
+                    recipe=instance,
+                    ingredient_id=ingredient_data['id'],
+                    amount=ingredient_data['amount']
+                )
+
         for field in ['name', 'text', 'cooking_time', 'image']:
             if field in validated_data:
-                setattr(instance, field, validated_data[field])  
+                setattr(instance, field, validated_data[field])
         instance.save()
         return instance
 
