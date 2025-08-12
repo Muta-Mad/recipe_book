@@ -126,6 +126,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     ingredients = RecipeIngredientSerializer(
         many=True,
+        source='recipe_ingredients',
     )
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all()
@@ -142,7 +143,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         author = self.context.get('request').user
         tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
+        ingredients_data = validated_data.pop('recipe_ingredients')
         recipe = Recipe.objects.create(author=author, **validated_data)
         if tags:
             recipe.tags.set(tags)
@@ -156,7 +157,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags', None)
-        ingredients_data = validated_data.pop('ingredients', None)
+        ingredients_data = validated_data.pop('recipe_ingredients', None)
 
         if tags is not None:
             instance.tags.set(tags)
@@ -183,14 +184,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Ингредиенты не должны повторяться!')
             checked_ids.append(ing_id)
-
-        # for ingredient in ingredients:
-        #     try:
-        #         Ingredient.objects.get(id=ingredient['id'])
-        #     except Ingredient.DoesNotExist:
-        #         raise serializers.ValidationError(
-        #             'У нас такого ингридиента нет'
-        #         )
         return ingredients
 
     def validate_tags(self, tags):
