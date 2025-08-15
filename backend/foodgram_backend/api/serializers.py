@@ -126,6 +126,13 @@ class RecipeIngredientInputSerializer(serializers.Serializer):
         queryset=Ingredient.objects.all(),)
     amount = serializers.IntegerField()
 
+    def validate_amount(self, value):
+        if value < 1:
+            raise serializers.ValidationError(
+                'Количество ингредиента должно быть не меньше 1'
+            )
+        return value
+
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания/обновления рецепта (POST/PATCH)."""
@@ -134,6 +141,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True,
         required=True,)
+    text = serializers.CharField(required=True,)
     cooking_time = serializers.IntegerField()
 
     class Meta:
