@@ -173,7 +173,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         if tags is not None:
             instance.tags.set(tags)
         if ingredients_data is not None:
-            RecipeIngredient.objects.filter(recipe=instance).delete()
+            instance.ingredients.clear()
 
             for ingredient_data in ingredients_data:
                 RecipeIngredient.objects.create(
@@ -195,14 +195,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Ингредиенты не должны повторяться!')
             checked_ids.append(ing_id)
-
-        for ingredient in ingredients:
-            try:
-                Ingredient.objects.get(id=ingredient['id'])
-            except Ingredient.DoesNotExist:
-                raise serializers.ValidationError(
-                    'У нас такого ингридиента нет'
-                )
         return ingredients
 
     def validate_tags(self, tags):
