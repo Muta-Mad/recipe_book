@@ -66,7 +66,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для ингредиентов в рецепте."""
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name', read_only=True,)
     measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit',
@@ -122,9 +122,17 @@ class RecipeGet(serializers.ModelSerializer):
 
 
 class RecipeIngredientInputSerializer(serializers.Serializer):
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(),)
+    id = serializers.IntegerField()
     amount = serializers.IntegerField()
+
+    def validate_id(self, value):
+        try:
+            Ingredient.objects.get(id=value)
+        except Ingredient.DoesNotExist:
+            raise serializers.ValidationError(
+                f'Ингредиент с ID {value} не существует'
+            )
+        return value
 
     def validate_amount(self, value):
         if value < 1:
@@ -136,7 +144,7 @@ class RecipeIngredientInputSerializer(serializers.Serializer):
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания/обновления рецепта (POST/PATCH)."""
-    image = Base64ImageField(required=True)
+    image = Base64ImageField(required=False)
     ingredients = RecipeIngredientInputSerializer(required=True, many=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True,
@@ -154,11 +162,18 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         print("DEBUG ingredients_data:", ingredients_data)
         recipe.ingredients.clear()
         for ingredient_data in ingredients_data:
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient_data['id'],
-                amount=ingredient_data['amount']
-            )
+            ingredient_id = ingredient_data['id']
+            try:
+                ingredient = Ingredient.objects.get(id=ingredient_id)
+                RecipeIngredient.objects.create(
+                    recipe=recipe,
+                    ingredient=ingredient,
+                    amount=ingredient_data['amount']
+                )
+            except Ingredient.DoesNotExist:
+                raise serializers.ValidationError(
+                    f'Ингредиент с ID {ingredient_id} не существует'
+                )
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
@@ -171,6 +186,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
+        
+        # Если изображение не передается, используем существующее
+        if 'image' not in validated_data:
+            validated_data['image'] = instance.image
+            
         recipe = super().update(instance, validated_data)
         instance.tags.set(tags_data)
         self._update_create_ingredients(recipe, ingredients_data)
@@ -187,6 +207,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             if ingredient_id in checked_ingredients:
                 raise serializers.ValidationError(
                     'Ингредиенты не должны повторяться.'
+                )
+            # Проверяем существование ингредиента
+            try:
+                Ingredient.objects.get(id=ingredient_id)
+            except Ingredient.DoesNotExist:
+                raise serializers.ValidationError(
+                    f'Ингредиент с ID {ingredient_id} не существует'
                 )
             checked_ingredients.append(ingredient_id)
         return ingredients
@@ -206,7 +233,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return tags
 
     def validate_image(self, value):
-        if not value:
+        if self.context['request'].method == 'POST' and not value:
             raise serializers.ValidationError(
                 'Обязательное поле.'
             )
