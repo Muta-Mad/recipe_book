@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -61,7 +62,7 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для тегов."""
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'slug')
+        fields = ('id', 'name', 'slug',)
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -121,82 +122,42 @@ class RecipeGet(serializers.ModelSerializer):
         ).exists()
 
 
+class RecipeIngredientInputSerializer(serializers.ModelSerializer):
+    """Сериализатор только для ввода ингредиентов."""
+    id = serializers.IntegerField(source='ingredient.id')  # Явное указание source
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'amount')
+
+
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания/обновления рецепта (POST/PATCH)."""
-    image = Base64ImageField(required=True)
+    image = Base64ImageField()
     ingredients = RecipeIngredientSerializer(
         many=True,
-        required=True
+        source='recipe_ingredients',
     )
     tags = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Tag.objects.all(),
-        required=True
+        many=True, queryset=Tag.objects.all()
     )
-    text = serializers.CharField(required=True)
-    cooking_time = serializers.IntegerField(
-        min_value=1,
-        error_messages={
-            'min_value': 'Время приготовления должно быть больше 1'
-        }
-    )
+    text = serializers.CharField(required=True,)
+    cooking_time = serializers.IntegerField()
 
     class Meta:
         model = Recipe
         fields = ('ingredients', 'tags', 'image',
-                  'name', 'text', 'cooking_time')
-
-    def validate(self, attrs):
-        if 'ingredients' not in attrs:
-            raise serializers.ValidationError(
-                {'ingredients': 'Обязательное поле.'}
-            )
-
-        if 'tags' not in attrs:
-            raise serializers.ValidationError(
-                {'tags': 'Обязательное поле.'}
-            )
-        return attrs
-
-    def validate_tags(self, value):
-        """Валидация тегов."""
-        if not value:
-            raise serializers.ValidationError(
-                'Поле не должно быть пустым.'
-            )
-
-        checked_tags = []
-        for tag in value:
-            if tag.id in checked_tags:
-                raise serializers.ValidationError(
-                    'Теги не должны повторяться!'
-                )
-            checked_tags.append(tag.id)
-        return value
-
-    def validate_ingredients(self, value):
-        """Валидация ингредиентов."""
-        if not value:
-            raise serializers.ValidationError(
-                'Поле не должно быть пустым.'
-            )
-
-        checked_ids = []
-        for ingredient in value:
-            if ingredient['id'] in checked_ids:
-                raise serializers.ValidationError(
-                    'Ингредиенты не должны повторяться!'
-                )
-            checked_ids.append(ingredient['id'])
-        return value
+                  'name', 'text', 'cooking_time',
+                  )
 
     def create(self, validated_data):
-        """Создание рецепта."""
         author = self.context.get('request').user
         tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
+        ingredients_data = validated_data.pop('recipe_ingredients')
         recipe = Recipe.objects.create(author=author, **validated_data)
-        recipe.tags.set(tags)
+        if tags:
+            recipe.tags.set(tags)
         for ingredient_data in ingredients_data:
             RecipeIngredient.objects.create(
                 recipe=recipe,
@@ -206,26 +167,82 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time
-        )
-        instance.image = validated_data.get('image', instance.image)
+        tags = validated_data.pop('tags', None)
+        ingredients_data = validated_data.pop('recipe_ingredients', None)
 
-        tags = validated_data.pop('tags')
-        instance.tags.clear()
-        instance.tags.set(tags)
-        ingredients_data = validated_data.pop('ingredients')
-        RecipeIngredient.objects.filter(recipe=instance).delete()
-        for ingredient_data in ingredients_data:
-            RecipeIngredient.objects.create(
-                recipe=instance,
-                ingredient_id=ingredient_data['id'],
-                amount=ingredient_data['amount']
-            )
-        instance.save()
+        if tags is not None:
+            instance.tags.set(tags)
+        if ingredients_data is not None:
+            RecipeIngredient.objects.filter(recipe=instance).delete()
+
+            for ingredient_data in ingredients_data:
+                RecipeIngredient.objects.create(
+                    recipe=instance,
+                    ingredient_id=ingredient_data['id'],
+                    amount=ingredient_data['amount']
+                )
         return instance
+
+    def validate_ingredients(self, ingredients):
+        if not ingredients:
+            raise serializers.ValidationError(
+                'Обязательное поле.'
+            )
+        checked_ids = []
+        for ing in ingredients:
+            ing_id = ing['id']
+            if ing_id in checked_ids:
+                raise serializers.ValidationError(
+                    'Ингредиенты не должны повторяться!')
+            checked_ids.append(ing_id)
+
+        for ingredient in ingredients:
+            try:
+                Ingredient.objects.get(id=ingredient['id'])
+            except Ingredient.DoesNotExist:
+                raise serializers.ValidationError(
+                    'У нас такого ингридиента нет'
+                )
+        return ingredients
+
+    def validate_tags(self, tags):
+        if not tags:
+            raise serializers.ValidationError(
+                'Обязательное поле.'
+            )
+        сhecked_tags = []
+        for tag_id in tags:
+            if tag_id in сhecked_tags:
+                raise serializers.ValidationError(
+                    'Теги не должны повторяться!'
+                )
+            сhecked_tags.append(tag_id)
+        return tags
+
+    def validate_image(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'Обязательное поле.'
+            )
+        return value
+
+    def validate_cooking_time(self, value):
+        if value < 1:
+            raise serializers.ValidationError(
+                'Время приготовление должно быть > 1'
+            )
+        return value
+
+    def to_representation(self, instance):
+        return RecipeGet(instance, context=self.context).data
+
+    def validate(self, data):
+        if self.context['request'].method == 'PATCH':
+            if 'recipe_ingredients' not in data:
+                raise serializers.ValidationError('Обязательное поле.')
+            if 'tags' not in data:
+                raise serializers.ValidationError('Обязательное поле.')
+        return data
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
