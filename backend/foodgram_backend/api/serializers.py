@@ -151,6 +151,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                   )
 
     def _update_create_ingredients(self, recipe, ingredients_data):
+        print("DEBUG ingredients_data:", ingredients_data)
         recipe.ingredients.clear()
         for ingredient_data in ingredients_data:
             RecipeIngredient.objects.create(
