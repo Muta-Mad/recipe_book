@@ -121,17 +121,19 @@ class RecipeGet(serializers.ModelSerializer):
         ).exists()
 
 
+class RecipeIngredientInputSerializer(serializers.Serializer):
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),)
+    amount = serializers.IntegerField()
+
+
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания/обновления рецепта (POST/PATCH)."""
-    image = Base64ImageField()
-    ingredients = RecipeIngredientSerializer(
-        many=True,
-        source='recipe_ingredients',
-    )
+    image = Base64ImageField(required=True)
+    ingredients = RecipeIngredientInputSerializer(required=True, many=True)
     tags = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Tag.objects.all()
-    )
-    text = serializers.CharField(required=True,)
+        queryset=Tag.objects.all(), many=True,
+        required=True,)
     cooking_time = serializers.IntegerField()
 
     class Meta:
@@ -140,36 +142,36 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                   'name', 'text', 'cooking_time',
                   )
 
+    def _update_create_ingredients(self, recipe, ingredients_data):
+        """Метод для обновления и создания ингредиентов."""
+
+        recipe.ingredients.clear()
+
+        RecipeIngredient.objects.bulk_create(
+            [
+                RecipeIngredient(
+                    recipe=recipe,
+                    ingredient=ingredient_data['id'],
+                    amount=ingredient_data['amount']
+                )
+                for ingredient_data in ingredients_data
+            ]
+        )
+
     def create(self, validated_data):
-        author = self.context.get('request').user
-        tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('recipe_ingredients')
-        recipe = Recipe.objects.create(author=author, **validated_data)
-        if tags:
-            recipe.tags.set(tags)
-        for ingredient_data in ingredients_data:
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient_id=ingredient_data['id'],
-                amount=ingredient_data['amount']
-            )
+        ingredients_data = validated_data.pop('ingredients')
+        tags_data = validated_data.pop('tags')
+        recipe = super().create(validated_data)
+        recipe.tags.set(tags_data)
+        self._update_create_ingredients(recipe, ingredients_data)
         return recipe
 
     def update(self, instance, validated_data):
-        tags = validated_data.pop('tags', None)
-        ingredients_data = validated_data.pop('recipe_ingredients', None)
-
-        if tags is not None:
-            instance.tags.set(tags)
-        if ingredients_data is not None:
-            RecipeIngredient.objects.filter(recipe=instance).delete()
-
-            for ingredient_data in ingredients_data:
-                RecipeIngredient.objects.create(
-                    recipe=instance,
-                    ingredient_id=ingredient_data['id'],
-                    amount=ingredient_data['amount']
-                )
+        ingredients_data = validated_data.pop('ingredients')
+        tags_data = validated_data.pop('tags')
+        recipe = super().update(instance, validated_data)
+        instance.tags.set(tags_data)
+        self._update_create_ingredients(recipe, ingredients_data)
         return instance
 
     def validate_ingredients(self, ingredients):
