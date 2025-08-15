@@ -13,7 +13,7 @@ from users.models import CustomUser, Subscribe
 class UsersSerializer(UserSerializer):
     """Сериализатор для получения данных пользователя."""
 
-        is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
     avatar = Base64ImageField()
 
     class Meta():
@@ -157,7 +157,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         RecipeIngredient.objects.bulk_create([
             RecipeIngredient(
                 recipe=recipe,
-                ingredient=ingredient_data['id'],
+                ingredient_id=ingredient_data['id'],
                 amount=ingredient_data['amount']
             )
             for ingredient_data in ingredients_data
@@ -166,11 +166,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Обработка ингредиентов и тегов."""
 
+        request = self.context.get('request')
+        author = request.user if request else None
+
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
 
-        recipe = super().create(validated_data)
-        recipe.tags.set(tags_data)
+        recipe = Recipe.objects.create(author=author, **validated_data)
+        if tags_data:
+            recipe.tags.set(tags_data)
         self._update_create_ingredients(recipe, ingredients_data)
 
         return recipe
