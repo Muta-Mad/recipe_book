@@ -172,11 +172,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Обязательное поле.'
             )
-        ids = [item['id'] for item in ingredients]
-        if len(ids) != len(set(ids)):
-            raise serializers.ValidationError(
-                'Ингредиенты не должны повторяться.'
-            )
+        checked_ingredients = []
+        for item in ingredients:
+            ingredient_id = item['id']
+            if ingredient_id in checked_ingredients:
+                raise serializers.ValidationError(
+                    'Ингредиенты не должны повторяться.'
+                )
+            checked_ingredients.append(ingredient_id)
         return ingredients
 
     def validate_tags(self, tags):
