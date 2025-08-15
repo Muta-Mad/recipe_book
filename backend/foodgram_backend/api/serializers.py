@@ -66,7 +66,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для ингредиентов в рецепте."""
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(source='ingredient.id', read_only=True)
     name = serializers.CharField(source='ingredient.name', read_only=True,)
     measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit',
