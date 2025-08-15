@@ -123,6 +123,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeGet
         return RecipeCreateSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
     @action(
         methods=('GET',),
         detail=True,

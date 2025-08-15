@@ -179,21 +179,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Обязательное поле.'
             )
-        checked_ids = []
-        for ing in ingredients:
-            ing_id = ing['id']
-            if ing_id in checked_ids:
-                raise serializers.ValidationError(
-                    'Ингредиенты не должны повторяться!')
-            checked_ids.append(ing_id)
-
-        for ingredient in ingredients:
-            try:
-                Ingredient.objects.get(id=ingredient['id'])
-            except Ingredient.DoesNotExist:
-                raise serializers.ValidationError(
-                    'У нас такого ингридиента нет'
-                )
+        ids = [item['id'] for item in ingredients]
+        if len(ids) != len(set(ids)):
+            raise serializers.ValidationError('Ингредиенты не должны повторяться.')
         return ingredients
 
     def validate_tags(self, tags):
@@ -229,7 +217,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if self.context['request'].method == 'PATCH':
-            if 'recipe_ingredients' not in data:
+            if 'ingredients' not in data:
                 raise serializers.ValidationError('Обязательное поле.')
             if 'tags' not in data:
                 raise serializers.ValidationError('Обязательное поле.')
