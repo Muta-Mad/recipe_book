@@ -17,7 +17,7 @@ from .paginator import CustomPageNumberPagination
 from .permission import IsAuthenticatedAuthorOrReadOnly
 from .serializers import (CustomAvatarSerializer, FavoriteSerializer,
                           GetSubscribeSerializer, IngredientsSerializer,
-                          RecipeCreateSerializer, RecipeGet,
+                          RecipeCreateUpdateSerializer, RecipeGet,
                           ShoppingCartSerializer, SubscribeSerializer,
                           TagSerializer, UsersSerializer)
 
@@ -121,7 +121,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
             return RecipeGet
-        return RecipeCreateSerializer
+        return RecipeCreateUpdateSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

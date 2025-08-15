@@ -142,9 +142,9 @@ class RecipeIngredientInputSerializer(serializers.Serializer):
         return value
 
 
-class RecipeCreateSerializer(serializers.ModelSerializer):
+class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания/обновления рецепта (POST/PATCH)."""
-    image = Base64ImageField(required=False)
+    image = Base64ImageField(required=True)
     ingredients = RecipeIngredientInputSerializer(required=True, many=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True,
@@ -162,17 +162,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         recipe.recipe_ingredients.all().delete()
         for ingredient_data in ingredients_data:
             ingredient_id = ingredient_data['id']
-            try:
-                ingredient = Ingredient.objects.get(id=ingredient_id)
-                RecipeIngredient.objects.create(
-                    recipe=recipe,
-                    ingredient=ingredient,
-                    amount=ingredient_data['amount']
-                )
-            except Ingredient.DoesNotExist:
-                raise serializers.ValidationError(
-                    f'Ингредиент с ID {ingredient_id} не существует'
-                )
+            ingredient = Ingredient.objects.get(id=ingredient_id)
+            RecipeIngredient.objects.create(
+                recipe=recipe,
+                ingredient=ingredient,
+                amount=ingredient_data['amount']
+            )
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
@@ -185,8 +180,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
-        if 'image' not in validated_data:
-            validated_data['image'] = instance.image
         recipe = super().update(instance, validated_data)
         instance.tags.set(tags_data)
         self._update_create_ingredients(recipe, ingredients_data)
@@ -250,6 +243,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Обязательное поле.')
             if 'tags' not in data:
                 raise serializers.ValidationError('Обязательное поле.')
+            if 'image' in data and not data['image']:
+                raise serializers.ValidationError(
+                    {'image': 'Обязательное поле.'}
+                )
         return data
 
 
