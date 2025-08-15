@@ -143,20 +143,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                   )
 
     def _update_create_ingredients(self, recipe, ingredients_data):
-        """Метод для обновления и создания ингредиентов."""
-
         recipe.ingredients.clear()
-
-        RecipeIngredient.objects.bulk_create(
-            [
-                RecipeIngredient(
-                    recipe=recipe,
-                    ingredient=ingredient_data['id'],
-                    amount=ingredient_data['amount']
-                )
-                for ingredient_data in ingredients_data
-            ]
-        )
+        for ingredient_data in ingredients_data:
+            RecipeIngredient.objects.create(
+                recipe=recipe,
+                ingredient=ingredient_data['id'],
+                amount=ingredient_data['amount']
+            )
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
@@ -181,7 +174,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             )
         ids = [item['id'] for item in ingredients]
         if len(ids) != len(set(ids)):
-            raise serializers.ValidationError('Ингредиенты не должны повторяться.')
+            raise serializers.ValidationError(
+                'Ингредиенты не должны повторяться.'
+            )
         return ingredients
 
     def validate_tags(self, tags):

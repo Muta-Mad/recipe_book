@@ -37,7 +37,7 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Модель Ингредиента."""
 
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=200)
     measurement_unit = models.CharField(max_length=25)
 
     def __str__(self):
