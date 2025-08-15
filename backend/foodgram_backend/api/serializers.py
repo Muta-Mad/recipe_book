@@ -160,7 +160,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def _update_create_ingredients(self, recipe, ingredients_data):
         print("DEBUG ingredients_data:", ingredients_data)
-        recipe.ingredients.clear()
+        # Clear existing ingredients for the recipe
+        recipe.recipe_ingredients.all().delete()
         for ingredient_data in ingredients_data:
             ingredient_id = ingredient_data['id']
             try:
