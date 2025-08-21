@@ -12,8 +12,7 @@ from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import CustomUser, Subscribe
 
 from .filters import IngredientFilter, RecipeFilter
-from .mixins import ListRetrieveViewSet
-from .paginator import CustomPageNumberPagination
+from .paginator import PageNumberPagination
 from .permission import IsAuthenticatedAuthorOrReadOnly
 from .serializers import (CustomAvatarSerializer, FavoriteSerializer,
                           GetSubscribeSerializer, IngredientsSerializer,
@@ -27,7 +26,7 @@ class CustomUsersViewSet(UserViewSet):
     serializer_class = UsersSerializer
     queryset = CustomUser.objects.all()
     permission_classes = (IsAuthenticatedAuthorOrReadOnly,)
-    pagination_class = CustomPageNumberPagination
+    pagination_class = PageNumberPagination
 
     @action(
         methods=('PUT', 'DELETE'),
@@ -86,7 +85,7 @@ class CustomUsersViewSet(UserViewSet):
         methods=('GET',),
         detail=False,
         url_path='subscriptions',
-        pagination_class=CustomPageNumberPagination
+        pagination_class=PageNumberPagination
     )
     def subscriptions(self, request):
         followers = CustomUser.objects.filter(
@@ -100,7 +99,7 @@ class CustomUsersViewSet(UserViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class TagViewSet(ListRetrieveViewSet):
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet для получения тегов."""
     permission_classes = (AllowAny,)
     queryset = Tag.objects.all()
@@ -115,7 +114,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-    pagination_class = CustomPageNumberPagination
+    pagination_class = PageNumberPagination
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):
@@ -222,7 +221,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
 
-class IngredientsViewSet(ListRetrieveViewSet):
+class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet для ингредиентов."""
     permission_classes = (AllowAny,)
     queryset = Ingredient.objects.all()

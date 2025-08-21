@@ -9,9 +9,9 @@ class IsAuthenticatedAuthorOrReadOnly(BasePermission):
      - Остальные действия - только аутентифицированным
     """
     def has_permission(self, request, view):
-        if view.action in ['list', 'retrieve']:
-            return True
-        return request.user and request.user.is_authenticated
+        return view.action in ['list', 'retrieve'] or (
+            request.user and request.user.is_authenticated
+        )
 
     def has_object_permission(self, request, view, obj):
         return (request.method in permissions.SAFE_METHODS

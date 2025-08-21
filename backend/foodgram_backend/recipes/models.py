@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from users.models import CustomUser
 
@@ -18,7 +19,12 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField('Tag', related_name='recipes')
     text = models.TextField(default='')
-    cooking_time = models.IntegerField()
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(32000)
+        ]
+    )
 
     def __str__(self):
         return self.name
@@ -55,7 +61,12 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE,
         related_name='ingredients'
     )
-    amount = models.IntegerField()
+    amount = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(32000)
+        ]
+    )
 
 
 class Favorite(models.Model):
