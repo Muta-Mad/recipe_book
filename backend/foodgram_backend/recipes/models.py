@@ -1,5 +1,8 @@
+import random
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 
 from users.models import CustomUser
 
@@ -25,9 +28,19 @@ class Recipe(models.Model):
             MaxValueValidator(32000)
         ]
     )
+    short_code = models.CharField(max_length=9, unique=True, blank=True)
 
     def __str__(self):
         return self.name
+
+    def generate_short_code(self):
+        code = ''.join(random.choices('0123456789', k=6))
+        return code
+
+    def save(self, *args, **kwargs):
+        if not self.short_code:
+            self.short_code = self.generate_short_code()
+        super().save(*args, **kwargs)
 
 
 class Tag(models.Model):
