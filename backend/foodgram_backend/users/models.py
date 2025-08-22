@@ -1,14 +1,17 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from api.constants import (MAX_LENGTH_EMAIL, MAX_LENGTH_FIRST_NAME,
+                           MAX_LENGTH_LAST_NAME)
+
 
 class CustomUser(AbstractUser):
     """Кастомная модель пользователя."""
 
     avatar = models.ImageField(upload_to='users/image/', blank=True, null=True)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=MAX_LENGTH_FIRST_NAME)
+    last_name = models.CharField(max_length=MAX_LENGTH_LAST_NAME)
+    email = models.EmailField(unique=True, max_length=MAX_LENGTH_EMAIL)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
