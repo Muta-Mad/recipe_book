@@ -1,5 +1,5 @@
-from django.http import HttpResponse
 from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -9,29 +9,17 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from recipes.models import (
-    Favorite,
-    Ingredient,
-    Recipe,
-    ShoppingCart,
-    Tag,
-    RecipeIngredient
-)
-from users.models import CustomUser, Subscribe
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginator import PageNumberPagination
 from api.permission import IsAuthenticatedAuthorOrReadOnly
-from api.serializers import (
-    CustomAvatarSerializer,
-    FavoriteSerializer,
-    GetSubscribeSerializer,
-    IngredientsSerializer,
-    RecipeCreateUpdateSerializer,
-    RecipeGet,
-    ShoppingCartSerializer,
-    SubscribeSerializer,
-    TagSerializer, UsersSerializer
-)
+from api.serializers import (CustomAvatarSerializer, FavoriteSerializer,
+                             GetSubscribeSerializer, IngredientsSerializer,
+                             RecipeCreateUpdateSerializer, RecipeGet,
+                             ShoppingCartSerializer, SubscribeSerializer,
+                             TagSerializer, UsersSerializer)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from users.models import CustomUser, Subscribe
 
 
 class CustomUsersViewSet(UserViewSet):

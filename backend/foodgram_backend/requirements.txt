@@ -12,3 +12,5 @@ PyYAML==6.0
 python-dotenv==1.1.0
 django-filter==2.4.0
 drf-extra-fields>=0.3.0
+flake8==6.0.0
+flake8-isort==6.0.0
