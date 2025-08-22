@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -220,6 +220,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         response[
             'Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
         return response
+
+
+def redirect_short_link(request, short_code):
+    recipe = get_object_or_404(Recipe, short_code=short_code)
+    return HttpResponseRedirect(f'/recipes/{recipe.id}/')
 
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
