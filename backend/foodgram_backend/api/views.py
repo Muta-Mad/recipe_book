@@ -116,7 +116,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-    pagination_class = PageNumberPagination
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):
