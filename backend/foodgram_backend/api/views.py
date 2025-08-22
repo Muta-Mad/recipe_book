@@ -213,7 +213,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for ingredient in ingredients_data:
             line = (f'- {ingredient["ingredient__name"]}: '
                     f'{ingredient["total_amount"]} '
-                    f'{ingredient["ingredient__measurement_unit"]}')
+                    f'{ingredient["ingredient__measurement_unit"]}'
+                    )
             shopping_list_lines.append(line)
         shopping_list_text = '\n'.join(shopping_list_lines)
         response = HttpResponse(shopping_list_text, content_type='text/plain')
