@@ -18,10 +18,10 @@ from recipes.models import (
     RecipeIngredient
 )
 from users.models import CustomUser, Subscribe
-from .filters import IngredientFilter, RecipeFilter
-from .paginator import PageNumberPagination
-from .permission import IsAuthenticatedAuthorOrReadOnly
-from .serializers import (
+from api.filters import IngredientFilter, RecipeFilter
+from api.paginator import PageNumberPagination
+from api.permission import IsAuthenticatedAuthorOrReadOnly
+from api.serializers import (
     CustomAvatarSerializer,
     FavoriteSerializer,
     GetSubscribeSerializer,
