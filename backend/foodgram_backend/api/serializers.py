@@ -129,20 +129,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                   )
 
     def _update_create_ingredients(self, recipe, ingredients_data):
-        """Метод для обновления и создания ингредиентов."""
-        recipe.ingredients.clear()
-        RecipeIngredient.objects.bulk_create(
-            [
-                RecipeIngredient(
-                    recipe=recipe,
-                    ingredient=ingredient_data['id'],
-                    amount=ingredient_data['amount']
-                )
-                for ingredient_data in ingredients_data
-            ]
-        )
-
-    def _update_create_ingredients(self, recipe, ingredients_data):
         recipe.recipe_ingredients.all().delete()
         RecipeIngredient.objects.bulk_create(
             [
