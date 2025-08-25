@@ -1,9 +1,12 @@
 import random
+import string
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from api.constants import MAX_LENGTH
+from api.constants import (MAX_ITERATION_CODE, MAX_LENGTH, MAX_LENGTH_CODE,
+                           MAX_LENGTH_INGREDIENT, MAX_LENGTH_TAGS,
+                           MAX_LENGTH_UNIT, MAX_VALUE, MIN_VALUE)
 from users.models import CustomUser
 
 
@@ -40,13 +43,13 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         validators=[
-            MinValueValidator(1),
-            MaxValueValidator(32000)
+            MinValueValidator(MIN_VALUE),
+            MaxValueValidator(MAX_VALUE)
         ],
         verbose_name='Время приготовления'
     )
     short_code = models.CharField(
-        max_length=9,
+        max_length=MAX_LENGTH_CODE,
         unique=True,
         blank=True,
         verbose_name='Короткий код'
@@ -55,14 +58,18 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ('-id',)
+        ordering = ('name', 'author')
 
     def __str__(self):
         return f'Рецепт: {self.name} (автор: {self.author.username})'
 
     def generate_short_code(self):
-        code = ''.join(random.choices('0123456789', k=6))
-        return code
+        digits = string.digits
+        for _ in range(MAX_ITERATION_CODE):
+            code = ''.join(random.choices(digits, k=6))
+            if not Recipe.objects.filter(short_code=code).exists():
+                return code
+        raise ValueError('Не удалось сгенерировать уникальный код')
 
     def save(self, *args, **kwargs):
         if not self.short_code:
@@ -74,12 +81,12 @@ class Tag(models.Model):
     """Модель тега."""
 
     name = models.CharField(
-        max_length=MAX_LENGTH,
+        max_length=MAX_LENGTH_TAGS,
         unique=True,
         verbose_name='Название'
     )
     slug = models.SlugField(
-        max_length=MAX_LENGTH,
+        max_length=MAX_LENGTH_TAGS,
         unique=True,
         verbose_name='Слаг'
     )
@@ -97,11 +104,11 @@ class Ingredient(models.Model):
     """Модель Ингредиента."""
 
     name = models.CharField(
-        max_length=MAX_LENGTH,
+        max_length=MAX_LENGTH_INGREDIENT,
         verbose_name='Название'
     )
     measurement_unit = models.CharField(
-        max_length=MAX_LENGTH,
+        max_length=MAX_LENGTH_UNIT,
         verbose_name='Единица измерения'
     )
 
@@ -137,8 +144,8 @@ class RecipeIngredient(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         validators=[
-            MinValueValidator(1),
-            MaxValueValidator(32000)
+            MinValueValidator(MIN_VALUE),
+            MaxValueValidator(MAX_VALUE)
         ],
         verbose_name='Количество'
     )

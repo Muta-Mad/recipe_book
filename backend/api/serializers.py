@@ -30,7 +30,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 )
 
 
-class CustomAvatarSerializer(serializers.ModelSerializer):
+class AvatarSerializer(serializers.ModelSerializer):
     """Сериализатор для обновления аватара пользователя."""
     avatar = Base64ImageField(required=True)
 
@@ -158,11 +158,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
     def validate_image(self, value):
-        if self.context['request'].method == 'POST' and not value:
-            raise serializers.ValidationError(
-                {'image': 'Обязательное поле.'}
-            )
-        if self.context['request'].method == 'PATCH' and not value:
+        if self.context['request'].method in ['POST', 'PATCH'] and not value:
             raise serializers.ValidationError(
                 {'image': 'Обязательное поле.'}
             )
@@ -263,9 +259,10 @@ class GetSubscribeSerializer(UsersSerializer):
         if recipes_limit:
             try:
                 recipes_limit = int(recipes_limit)
-                queryset = queryset[:int(recipes_limit)]
             except (ValueError):
                 pass
+            else:
+                queryset = queryset[:int(recipes_limit)]
         return ShortRecipeSerializer(
             queryset,
             many=True,

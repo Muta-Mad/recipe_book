@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginator import PageNumberPagination
 from api.permission import IsAuthenticatedAuthorOrReadOnly
-from api.serializers import (CustomAvatarSerializer, FavoriteSerializer,
+from api.serializers import (AvatarSerializer, FavoriteSerializer,
                              GetSubscribeSerializer, IngredientsSerializer,
                              RecipeCreateUpdateSerializer, RecipeGet,
                              ShoppingCartSerializer, SubscribeSerializer,
@@ -21,7 +21,7 @@ from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
 from users.models import CustomUser, Subscribe
 
 
-class CustomUsersViewSet(UserViewSet):
+class UsersProfileViewSet(UserViewSet):
     """ViewSet для работы с пользователями: регистрация, аватар, подписки."""
     serializer_class = UsersSerializer
     queryset = CustomUser.objects.all()
@@ -35,7 +35,7 @@ class CustomUsersViewSet(UserViewSet):
     )
     def avatar(self, request):
         user = request.user
-        serializer = CustomAvatarSerializer(
+        serializer = AvatarSerializer(
             instance=user,
             data=request.data,
             partial=True
@@ -94,10 +94,9 @@ class CustomUsersViewSet(UserViewSet):
             subscribers__user=request.user
         )
         page = self.paginate_queryset(followers)
-        if page is not None:
-            serializer = GetSubscribeSerializer(
-                page, many=True, context={'request': request}
-            )
+        serializer = GetSubscribeSerializer(
+            page, many=True, context={'request': request}
+        )
         return self.get_paginated_response(serializer.data)
 
 
