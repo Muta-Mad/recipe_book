@@ -35,8 +35,8 @@ Foodgram — это онлайн-платформа для публикации 
    docker-compose exec backend python manage.py load_data
     ```
 6.  **Готово!:**
-    *   Проект будет доступен по адресу: **`http://localhost:8000`**
-    *   Стандартная админ-панель Django: **`http://localhost:8000/admin`**
+    Проект будет доступен по адресу: **`http://localhost:8000`**
+    Стандартная админ-панель Django: **`http://localhost:8000/admin`**
 
 7.  **Как открыть документацию?:**
     Документация автоматически генерируется на основе файла openapi-schema.yml с помощью ReDoc.
