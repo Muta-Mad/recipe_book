@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from users.models import CustomUser, Subscribe
+from users.models import Subscribe, User
 
 
 class CustomUserAdmin(admin.ModelAdmin):
@@ -12,5 +12,5 @@ class SubscribeAdmin(admin.ModelAdmin):
     list_display = ('user', 'author',)
 
 
-admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(User, CustomUserAdmin)
 admin.site.register(Subscribe, SubscribeAdmin)

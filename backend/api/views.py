@@ -18,13 +18,13 @@ from api.serializers import (AvatarSerializer, FavoriteSerializer,
                              TagSerializer, UsersSerializer)
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
-from users.models import CustomUser, Subscribe
+from users.models import Subscribe, User
 
 
 class UsersProfileViewSet(UserViewSet):
     """ViewSet для работы с пользователями: регистрация, аватар, подписки."""
     serializer_class = UsersSerializer
-    queryset = CustomUser.objects.all()
+    queryset = User.objects.all()
     permission_classes = (IsAuthenticatedAuthorOrReadOnly,)
     pagination_class = PageNumberPagination
 
@@ -57,7 +57,7 @@ class UsersProfileViewSet(UserViewSet):
         url_path='subscribe',
     )
     def subscribe(self, request, id):
-        author = get_object_or_404(CustomUser, id=id)
+        author = get_object_or_404(User, id=id)
         serializer = SubscribeSerializer(
             data={
                 'user': request.user.id,
@@ -71,7 +71,7 @@ class UsersProfileViewSet(UserViewSet):
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id):
-        author = get_object_or_404(CustomUser, id=id)
+        author = get_object_or_404(User, id=id)
         deleted_count, _ = Subscribe.objects.filter(
             user=request.user,
             author=author
@@ -90,7 +90,7 @@ class UsersProfileViewSet(UserViewSet):
         pagination_class=PageNumberPagination
     )
     def subscriptions(self, request):
-        followers = CustomUser.objects.filter(
+        followers = User.objects.filter(
             subscribers__user=request.user
         )
         page = self.paginate_queryset(followers)

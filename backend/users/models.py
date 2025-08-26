@@ -4,7 +4,7 @@ from django.db import models
 from api.constants import MAX_LENGTH_FIRST_NAME, MAX_LENGTH_LAST_NAME
 
 
-class CustomUser(AbstractUser):
+class User(AbstractUser):
     """Кастомная модель пользователя."""
 
     avatar = models.ImageField(upload_to='users/image/', blank=True, null=True)
@@ -25,11 +25,11 @@ class CustomUser(AbstractUser):
 class Subscribe(models.Model):
     """Модель для подписок."""
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE,
+        User, on_delete=models.CASCADE,
         related_name='subscribing',
     )
     author = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE,
+        User, on_delete=models.CASCADE,
         related_name='subscribers',
     )
 

@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
-from users.models import CustomUser, Subscribe
+from users.models import Subscribe, User
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class UsersSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField()
 
     class Meta():
-        model = CustomUser
+        model = User
         fields = (
             'email', 'id', 'username', 'first_name',
             'last_name', 'is_subscribed', 'avatar',
@@ -35,7 +35,7 @@ class AvatarSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField(required=True)
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('avatar',)
 
     def validate(self, data):

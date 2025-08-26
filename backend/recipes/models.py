@@ -7,14 +7,14 @@ from django.db import models
 from api.constants import (MAX_ITERATION_CODE, MAX_LENGTH, MAX_LENGTH_CODE,
                            MAX_LENGTH_INGREDIENT, MAX_LENGTH_TAGS,
                            MAX_LENGTH_UNIT, MAX_VALUE, MIN_VALUE)
-from users.models import CustomUser
+from users.models import User
 
 
 class Recipe(models.Model):
     """Модель рецепта с основными данными и связями."""
 
     author = models.ForeignKey(
-        CustomUser,
+        User,
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Автор'
@@ -166,7 +166,7 @@ class RecipeIngredient(models.Model):
 class Favorite(models.Model):
     """Модель для хранения избранных рецептов."""
     user = models.ForeignKey(
-        CustomUser,
+        User,
         related_name='favor_user',
         on_delete=models.CASCADE,
         verbose_name='Пользователь'
@@ -189,7 +189,7 @@ class Favorite(models.Model):
 class ShoppingCart(models.Model):
     """Модель корзины покупок."""
     user = models.ForeignKey(
-        CustomUser,
+        User,
         related_name='shpg_user',
         on_delete=models.CASCADE,
         verbose_name='Пользователь'
