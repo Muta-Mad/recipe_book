@@ -205,7 +205,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(
             total_amount=Sum('amount')
-        )
+        ).order_by('ingredient__name')
         shopping_list_lines = []
         for ingredient in ingredients_data:
             line = (f'- {ingredient["ingredient__name"]}: '
