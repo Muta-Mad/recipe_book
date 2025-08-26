@@ -41,3 +41,4 @@ Foodgram — это онлайн-платформа для публикации 
 *   **Веб-сервер:** Nginx
 *   **Контейнеризация:** Docker, Docker-compose
 *   **CI/CD:** GitHub Actions
+fixxxxx
