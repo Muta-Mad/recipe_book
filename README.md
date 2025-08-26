@@ -28,11 +28,33 @@ Foodgram — это онлайн-платформа для публикации 
     docker-compose exec backend python manage.py createsuperuser
     docker-compose exec backend cp -r /app/collected_static/. /backend_static/static/
     ```
+5. **(Опционально) Наполните базу данных начальными данными:**
 
-5.  **Готово!**
-    *   Проект будет доступен по адресу: **`http://localhost`**
-    *   Стандартная админ-панель Django: **`http://localhost/admin`**
+Чтобы загрузить предустановленный список ингредиентов, выполните:
+    ```bash
+   docker-compose exec backend python manage.py load_data
+    ```
+6.  **Готово!**
+    *   Проект будет доступен по адресу: **`http://localhost:8000`**
+    *   Стандартная админ-панель Django: **`http://localhost:8000/admin`**
 
+7.  **Как открыть документацию?**
+    Документация автоматически генерируется на основе файла openapi-schema.yml с помощью ReDoc.
+    Вы также можете просмотреть схему API вручную, открыв файл foodgram/docs/openapi-schema.yml
+    через онлайн-сервисы например https://redocly.github.io/redoc/
+8.  **Примеры API-запросов**
+    Получение токена аутентификации 
+    **Запрос:**
+    POST http://localhost/api/auth/token/login/
+    Body (JSON):
+    {
+      "email": "user@example.com",
+      "password": "your_password"
+    }
+    **Ответ**
+    {
+      "auth_token": "ваш токен"
+    }
 ## 🛠 Технологии
 
 *   **Backend:** Django REST Framework (DRF), Djoser
@@ -41,4 +63,8 @@ Foodgram — это онлайн-платформа для публикации 
 *   **Веб-сервер:** Nginx
 *   **Контейнеризация:** Docker, Docker-compose
 *   **CI/CD:** GitHub Actions
-fixxxxx
+
+**Авторство**
+    Тагаев Мухаммад — Backend-разработчик (Python/Django)
+    Яндекс.Практикум — учебный проект в рамках курса «Python-разработчик».
+    Команда Yandex.Praktikum — предоставление готового фронтенда на React.
