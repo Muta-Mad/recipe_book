@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import random
 import string
+from typing import Any
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -60,20 +63,22 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
         ordering = ('name', 'author')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'Рецепт: {self.name} (автор: {self.author.username})'
 
-    def generate_short_code(self):
-        digits = string.digits
-        for _ in range(MAX_ITERATION_CODE):
-            code = ''.join(random.choices(digits, k=6))
-            if not Recipe.objects.filter(short_code=code).exists():
-                return code
-        raise ValueError('Не удалось сгенерировать уникальный код')
+    @staticmethod
+    def _make_short_code() -> str:
+        return ''.join(random.choices(string.digits, k=6))
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.short_code:
-            self.short_code = self.generate_short_code()
+            for _ in range(MAX_ITERATION_CODE):
+                candidate = self._make_short_code()
+                if not Recipe.objects.filter(short_code=candidate).exists():
+                    self.short_code = candidate
+                    break
+            else:
+                raise ValueError('Не удалось сгенерировать уникальный код')
         super().save(*args, **kwargs)
 
 
@@ -96,12 +101,12 @@ class Tag(models.Model):
         verbose_name_plural = 'Теги'
         ordering = ('name',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'Тег: {self.name} ({self.slug})'
 
 
 class Ingredient(models.Model):
-    """Модель Ингредиента."""
+    """Модель ингредиента."""
 
     name = models.CharField(
         max_length=MAX_LENGTH_INGREDIENT,
@@ -123,7 +128,7 @@ class Ingredient(models.Model):
             )
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'Ингредиент: {self.name} ({self.measurement_unit})'
 
 
@@ -139,7 +144,7 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredients',
+        related_name='ingredient_usages',
         verbose_name='Ингредиент'
     )
     amount = models.PositiveSmallIntegerField(
@@ -154,10 +159,16 @@ class RecipeIngredient(models.Model):
         verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингредиенты рецепта'
         ordering = ('recipe',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient'
+            )
+        ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
-            f'Ингредиент в рецепте: {self.ingredient.name} - '
+            f'{self.ingredient.name} — '
             f'{self.amount} {self.ingredient.measurement_unit} '
             f'(рецепт: {self.recipe.name})'
         )
@@ -165,6 +176,7 @@ class RecipeIngredient(models.Model):
 
 class Favorite(models.Model):
     """Модель для хранения избранных рецептов."""
+
     user = models.ForeignKey(
         User,
         related_name='favor_user',
@@ -175,19 +187,27 @@ class Favorite(models.Model):
         Recipe,
         related_name='favor_recipe',
         on_delete=models.CASCADE,
-        verbose_name='Рецепт')
+        verbose_name='Рецепт'
+    )
 
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
         ordering = ('-id',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite'
+            )
+        ]
 
-    def __str__(self):
-        return f'Избранное: {self.user.username} - {self.recipe.name}'
+    def __str__(self) -> str:
+        return f'Избранное: {self.user.username} — {self.recipe.name}'
 
 
 class ShoppingCart(models.Model):
     """Модель корзины покупок."""
+
     user = models.ForeignKey(
         User,
         related_name='shpg_user',
@@ -205,6 +225,12 @@ class ShoppingCart(models.Model):
         verbose_name = 'Корзина покупок'
         verbose_name_plural = 'Корзины покупок'
         ordering = ('-id',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_shopping_cart'
+            )
+        ]
 
-    def __str__(self):
-        return f'Корзина: {self.user.username} - {self.recipe.name}'
+    def __str__(self) -> str:
+        return f'Корзина: {self.user.username} — {self.recipe.name}'

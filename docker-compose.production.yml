@@ -1,39 +1,59 @@
-version: '3'
+version: '3.8'
 
 volumes:
   pg_data:
   static:
   media:
+
 services:
   db:
-    image: postgres:13
+    image: postgres:13-alpine
+    restart: unless-stopped
     volumes:
       - pg_data:/var/lib/postgresql/data
-    env_file: ../.env
+    env_file: .env
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     image: t1max/foodgram_backend
-    env_file: ../.env
+    restart: unless-stopped
+    env_file: .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - static:/backend_static
       - media:/app/media/
+    healthcheck:
+      test: ['CMD-SHELL', 'python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/tags/\")"']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   frontend:
     image: t1max/foodgram_frontend
-    env_file: ../.env
+    restart: 'no'
+    env_file: .env
     depends_on:
       - backend
     command: cp -r /app/build/. /static/
     volumes:
       - static:/static/
+
   nginx:
     image: t1max/foodgram_nginx
-    env_file: ../.env
+    restart: unless-stopped
+    env_file: .env
     depends_on:
       - frontend
       - backend
     ports:
-      - "8000:80"
+      - '8000:80'
     volumes:
       - static:/staticfiles
       - media:/media/

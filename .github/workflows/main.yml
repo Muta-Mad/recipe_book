@@ -10,73 +10,91 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:13.10
+        image: postgres:13
         env:
-          POSTGRES_USER: django_user         
-          POSTGRES_PASSWORD: mysecretpassword  
-          POSTGRES_DB: django                  
+          POSTGRES_USER: django_user
+          POSTGRES_PASSWORD: mysecretpassword
+          POSTGRES_DB: django
         ports:
           - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-    
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.9
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8==6.0.0 flake8-isort==6.0.0
-        pip install -r ./backend/requirements.txt
-    - name: Test with flake8 and django tests
-      env:
-        POSTGRES_USER: django_user
-        POSTGRES_PASSWORD: mysecretpassword
-        POSTGRES_DB: django
-        DB_HOST: localhost
-        DB_PORT: 5432
-      run: |
-        python -m flake8 backend/
-        cd backend/
-        python manage.py test
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ./backend/requirements.txt
+
+      - name: Lint with flake8
+        run: python -m flake8 backend/
+
+      - name: Run pytest
+        env:
+          POSTGRES_USER: django_user
+          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          POSTGRES_DB: django
+          DB_HOST: localhost
+          DB_PORT: 5432
+          SECRET_KEY: ci-test-secret-key-not-for-production
+          DEBUG: 'True'
+          USE_SQLITE: 'False'
+          ALLOWED_HOSTS: localhost,127.0.0.1
+        run: |
+          cd backend
+          python -m pytest ../backend/tests/ -v --cov=. --cov-report=term-missing --cov-fail-under=70
 
   build_and_push_to_docker_hub:
-    name: Push Docker image to DockerHub
+    name: Push backend Docker image to DockerHub
     runs-on: ubuntu-latest
     needs: tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - name: Login to Docker 
+
+      - name: Login to Docker
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }} 
+          username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
           context: ./backend/
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
-  
-  
+
   build_frontend_and_push_to_docker_hub:
     name: Push frontend Docker image to DockerHub
     runs-on: ubuntu-latest
+    needs: tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - name: Login to Docker 
+
+      - name: Login to Docker
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
@@ -87,57 +105,59 @@ jobs:
   build_nginx_and_push_to_docker_hub:
     name: Push nginx Docker image to DockerHub
     runs-on: ubuntu-latest
+    needs: tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - name: Login to Docker 
+
+      - name: Login to Docker
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
           context: ./infra/
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_nginx:latest 
-  
+          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_nginx:latest
+
   deploy:
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - build_and_push_to_docker_hub
       - build_frontend_and_push_to_docker_hub
       - build_nginx_and_push_to_docker_hub
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
-    - name: Copy docker-compose.yml via ssh
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.SSH_KEY }}
-        passphrase: ${{ secrets.SSH_PASSPHRASE }}
-        source: "docker-compose.production.yml"
-        target: "foodgram"
-    - name: Executing remote ssh commands to deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.SSH_KEY }}
-        passphrase: ${{ secrets.SSH_PASSPHRASE }}
-        script: |
-          cd foodgram
-          # Выполняет pull образов с Docker Hub
-          sudo docker compose -f docker-compose.production.yml pull
-          # Перезапускает все контейнеры в Docker Compose
-          sudo docker compose -f docker-compose.production.yml down
-          sudo docker compose -f docker-compose.production.yml up -d
-          # Выполняет миграции и сбор статики
-          sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
-          sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
-          sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
-          
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Copy docker-compose.yml via ssh
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          source: 'docker-compose.production.yml'
+          target: 'foodgram'
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            cd foodgram
+            sudo docker compose -f docker-compose.production.yml pull
+            sudo docker compose -f docker-compose.production.yml down
+            sudo docker compose -f docker-compose.production.yml up -d
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
+            sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
