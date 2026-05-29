@@ -25,7 +25,8 @@ COPY . .
 
 # Запускаем от непривилегированного пользователя
 RUN useradd --no-create-home --shell /bin/false appuser \
-    && chown -R appuser:appuser /app
+    && mkdir -p /backend_static/static \
+    && chown -R appuser:appuser /app /backend_static
 USER appuser
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "foodgram_backend.wsgi"]

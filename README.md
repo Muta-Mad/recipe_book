@@ -95,12 +95,8 @@ cp .env.example .env
 Заполните `.env`:
 
 ```env
-# База данных
-POSTGRES_DB=foodgram
-POSTGRES_USER=foodgram_user
-POSTGRES_PASSWORD=your_strong_password
-DB_HOST=db
-DB_PORT=5432
+# Static files
+STATIC_ROOT=/backend_static/static
 
 # Django
 SECRET_KEY=your-secret-key-50-chars-minimum
@@ -109,6 +105,13 @@ ALLOWED_HOSTS=localhost,127.0.0.1,yourdomain.com
 
 # CORS (для production)
 CORS_ALLOWED_ORIGINS=https://yourdomain.com
+
+# База данных
+POSTGRES_DB=foodgram
+POSTGRES_USER=foodgram_user
+POSTGRES_PASSWORD=your_strong_password
+DB_HOST=db
+DB_PORT=5432
 ```
 
 ### 3. Запуск
@@ -123,7 +126,6 @@ docker compose exec backend python manage.py migrate
 
 # Сбор статики
 docker compose exec backend python manage.py collectstatic --noinput
-docker compose exec backend cp -r /app/collected_static/. /backend_static/static/
 
 # Создание суперпользователя
 docker compose exec backend python manage.py createsuperuser
@@ -141,7 +143,7 @@ docker compose exec backend python manage.py loaddata ingredients.json
 | Сервис | URL |
 |--------|-----|
 | 🌐 Приложение | http://localhost:8000 |
-| ⚙️ Админ-панель | http://localhost:8000/admin |
+| ⚙️ Админ-панель | http://localhost:8000/admin/ |
 | 📖 API | http://localhost:8000/api/ |
 
 ---
@@ -301,13 +303,14 @@ python manage.py runserver
 | `SECRET_KEY` | ✅ | — | Секретный ключ Django |
 | `DEBUG` | ❌ | `False` | Режим отладки |
 | `ALLOWED_HOSTS` | ✅ | `localhost,127.0.0.1` | Разрешённые хосты |
+| `STATIC_ROOT` | ❌ | `backend/collected_static` | Путь сборки статики; в Docker — `/backend_static/static` |
+| `CORS_ALLOWED_ORIGINS` | ❌ | — | Разрешённые CORS origins (через запятую) |
 | `POSTGRES_DB` | ✅ | `django` | Имя БД |
 | `POSTGRES_USER` | ✅ | `django` | Пользователь БД |
 | `POSTGRES_PASSWORD` | ✅ | — | Пароль БД |
 | `DB_HOST` | ✅ | — | Хост БД |
 | `DB_PORT` | ❌ | `5432` | Порт БД |
 | `USE_SQLITE` | ❌ | `False` | Использовать SQLite вместо PostgreSQL |
-| `CORS_ALLOWED_ORIGINS` | ❌ | — | Разрешённые CORS origins (через запятую) |
 
 ---
 
