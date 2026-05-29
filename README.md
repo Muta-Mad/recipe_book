@@ -60,7 +60,7 @@
 - [Gunicorn](https://gunicorn.org) — WSGI-сервер
 
 **Frontend**
-- [React](https://reactjs.org) (предоставлен Яндекс.Практикум)
+- [React](https://reactjs.org)
 
 **Инфраструктура**
 - [PostgreSQL 13](https://postgresql.org) — база данных
