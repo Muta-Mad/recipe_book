@@ -19,7 +19,7 @@ services:
       retries: 5
 
   backend:
-    image: t1max/foodgram_backend
+    image: ${DOCKER_USERNAME}/foodgram_backend
     restart: unless-stopped
     env_file: .env
     depends_on:
@@ -36,7 +36,7 @@ services:
       start_period: 40s
 
   frontend:
-    image: t1max/foodgram_frontend
+    image: ${DOCKER_USERNAME}/foodgram_frontend
     restart: 'no'
     env_file: .env
     depends_on:
@@ -46,7 +46,7 @@ services:
       - static:/static/
 
   nginx:
-    image: t1max/foodgram_nginx
+    image: ${DOCKER_USERNAME}/foodgram_nginx
     restart: unless-stopped
     env_file: .env
     depends_on:

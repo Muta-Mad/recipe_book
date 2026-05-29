@@ -42,7 +42,7 @@ jobs:
       - name: Run pytest
         env:
           POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          POSTGRES_PASSWORD: mysecretpassword
           POSTGRES_DB: django
           DB_HOST: localhost
           DB_PORT: 5432
@@ -52,7 +52,7 @@ jobs:
           ALLOWED_HOSTS: localhost,127.0.0.1
         run: |
           cd backend
-          python -m pytest ../backend/tests/ -v --cov=. --cov-report=term-missing --cov-fail-under=70
+          python -m pytest tests/ -v --cov=. --cov-report=term-missing --cov-fail-under=70
 
   build_and_push_to_docker_hub:
     name: Push backend Docker image to DockerHub
@@ -160,4 +160,3 @@ jobs:
             sudo docker compose -f docker-compose.production.yml up -d
             sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
             sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
-            sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
