@@ -413,3 +413,4 @@ foodgram/
 **Мухаммад Тагаев** — Backend-разработчик
 
 [![GitHub](https://img.shields.io/badge/GitHub-Muta--Mad-181717?style=flat-square&logo=github)](https://github.com/Muta-Mad)
+
