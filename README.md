@@ -237,31 +237,22 @@ GET /api/ingredients/?name=соль    # Поиск по началу назва
 
 ### Запуск тестов
 
-**Вариант 1 — через Docker (рекомендуется, не требует настройки):**
-
-```bash
-cd infra
-
-# Запустить тесты
-docker compose exec backend pytest tests/ -v
-
-# С отчётом о покрытии
-docker compose exec backend pytest tests/ --cov=. --cov-report=term-missing
-```
-
-**Вариант 2 — локально через виртуальное окружение:**
+Тесты запускаются локально — они не включены в Docker-образ.
 
 ```bash
 cd backend
 
-# Создать и активировать venv (если ещё не создано)
+# Создать и активировать venv (один раз)
 python3.9 -m venv venv
 source venv/bin/activate
 
-# Установить зависимости
+# Установить зависимости (один раз)
 pip install -r requirements.txt
 
-# Запустить тесты (USE_SQLITE=True в .env обязателен)
+# Убедиться, что в ../.env установлено USE_SQLITE=True
+# (тесты используют SQLite, а не PostgreSQL)
+
+# Запустить тесты
 pytest tests/ -v
 
 # С отчётом о покрытии
@@ -288,7 +279,7 @@ backend/tests/
 ### Покрытие
 
 ```bash
-docker compose exec backend pytest tests/ --cov=. --cov-report=term-missing --cov-fail-under=70
+pytest tests/ --cov=. --cov-report=term-missing --cov-fail-under=70
 ```
 
 ---
