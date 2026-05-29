@@ -184,7 +184,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer: Any) -> None:
         serializer.save(author=self.request.user)
 
-    # --- Short link ----------------------------------------------------------
 
     @action(
         methods=('GET',),
@@ -198,7 +197,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         link = request.build_absolute_uri(f'/s/{recipe.short_code}/')
         return Response({'short-link': link}, status=status.HTTP_200_OK)
 
-    # --- Shopping cart -------------------------------------------------------
 
     @action(
         methods=('POST',),
@@ -228,7 +226,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_favorite(self, request: Request, pk: int) -> Response:
         return self._remove_from_list(request, pk, Favorite, 'избранном')
 
-    # --- Download cart -------------------------------------------------------
 
     @action(
         methods=('GET',),
@@ -256,7 +253,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
         return response
 
-    # --- Helpers -------------------------------------------------------------
 
     def _add_to_list(
         self, request: Request, pk: int, serializer_class: type
