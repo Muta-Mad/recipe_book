@@ -101,6 +101,8 @@ jobs:
           context: ./frontend/
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:cache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:cache,mode=max
 
   build_nginx_and_push_to_docker_hub:
     name: Push nginx Docker image to DockerHub
