@@ -47,6 +47,11 @@ class UsersProfileViewSet(UserViewSet):
     permission_classes = (IsAuthenticatedAuthorOrReadOnly,)
     pagination_class = RecipeBookPagination
 
+    def get_permissions(self):
+        if self.action == 'retrieve':
+            return [IsAuthenticated()]
+        return super().get_permissions()
+
     def get_serializer_context(self) -> dict:
         ctx = super().get_serializer_context()
         user = self.request.user
@@ -61,11 +66,10 @@ class UsersProfileViewSet(UserViewSet):
         serializer = AvatarSerializer(
             instance=request.user,
             data=request.data,
-            partial=True,
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'avatar': request.user.avatar.url})
+        return Response({'avatar': serializer.instance.avatar.url})
 
     @avatar.mapping.delete
     def delete_avatar(self, request: Request) -> Response:
@@ -105,13 +109,21 @@ class UsersProfileViewSet(UserViewSet):
             .prefetch_related(
                 Prefetch(
                     'recipes',
-                    queryset=Recipe.objects.only('id', 'name', 'image', 'cooking_time'),
+                    queryset=Recipe.objects.only(
+                        'id', 'name', 'image', 'cooking_time', 'author_id'
+                    ),
                 )
             )
         )
+        subscribed_ids = set(
+            Subscribe.objects.filter(user=request.user)
+            .values_list('author_id', flat=True)
+        )
         page = self.paginate_queryset(followers)
         serializer = GetSubscribeSerializer(
-            page, many=True, context={'request': request}
+            page,
+            many=True,
+            context={'request': request, 'subscribed_ids': subscribed_ids},
         )
         return self.get_paginated_response(serializer.data)
 
@@ -163,6 +175,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ShoppingCart.objects.filter(user=user)
                 .values_list('recipe_id', flat=True)
             )
+            ctx['subscribed_ids'] = set(
+                Subscribe.objects.filter(user=user)
+                .values_list('author_id', flat=True)
+            )
         return ctx
 
     def perform_create(self, serializer: Any) -> None:
@@ -174,6 +190,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=('GET',),
         detail=True,
         url_path='get-link',
+        url_name='get-link',
         permission_classes=(AllowAny,),
     )
     def get_short_link(self, request: Request, pk: int) -> Response:
