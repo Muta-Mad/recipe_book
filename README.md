@@ -397,6 +397,3 @@ foodgram/
 **Мухаммад Тагаев** — Backend-разработчик
 
 [![GitHub](https://img.shields.io/badge/GitHub-Muta--Mad-181717?style=flat-square&logo=github)](https://github.com/Muta-Mad)
-
-> Учебный проект в рамках курса **«Python-разработчик»** от [Яндекс.Практикум](https://practicum.yandex.ru).
-> Фронтенд предоставлен командой Яндекс.Практикум.
