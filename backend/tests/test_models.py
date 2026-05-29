@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 import pytest
-from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-
-from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
-from users.models import Subscribe, User
-
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
+from users.models import Subscribe
 
 # ---------------------------------------------------------------------------
 # Recipe

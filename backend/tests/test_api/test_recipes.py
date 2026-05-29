@@ -3,9 +3,7 @@ from __future__ import annotations
 
 import pytest
 from django.urls import reverse
-
 from recipes.models import Favorite, ShoppingCart
-
 
 RECIPES_LIST_URL = '/api/recipes/'
 

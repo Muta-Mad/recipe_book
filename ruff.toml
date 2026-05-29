@@ -1,0 +1,12 @@
+line-length = 88
+
+[lint]
+select = ["E", "F", "I"]
+ignore = ["F811"]
+
+exclude = [
+    "*/migrations/*",
+    "*/tests/*",
+    "venv",
+    ".venv",
+]

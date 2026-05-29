@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import pytest
 from django.urls import reverse
-
 from users.models import Subscribe
 
 

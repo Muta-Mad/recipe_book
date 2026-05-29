@@ -7,23 +7,36 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from users.models import Subscribe, User
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginator import RecipeBookPagination
 from api.permission import IsAuthenticatedAuthorOrReadOnly
-from api.serializers import (AvatarSerializer, FavoriteSerializer,
-                             GetSubscribeSerializer, IngredientsSerializer,
-                             RecipeCreateUpdateSerializer, RecipeGet,
-                             ShoppingCartSerializer, SubscribeSerializer,
-                             TagSerializer, UsersSerializer)
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
-from users.models import Subscribe, User
+from api.serializers import (
+    AvatarSerializer,
+    FavoriteSerializer,
+    GetSubscribeSerializer,
+    IngredientsSerializer,
+    RecipeCreateUpdateSerializer,
+    RecipeGet,
+    ShoppingCartSerializer,
+    SubscribeSerializer,
+    TagSerializer,
+    UsersSerializer,
+)
 
 
 class UsersProfileViewSet(UserViewSet):
@@ -147,7 +160,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 Favorite.objects.filter(user=user).values_list('recipe_id', flat=True)
             )
             ctx['cart_ids'] = set(
-                ShoppingCart.objects.filter(user=user).values_list('recipe_id', flat=True)
+                ShoppingCart.objects.filter(user=user)
+                .values_list('recipe_id', flat=True)
             )
         return ctx
 
@@ -217,7 +231,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             .order_by('ingredient__name')
         )
         lines = [
-            f'- {r["ingredient__name"]}: {r["total_amount"]} {r["ingredient__measurement_unit"]}'
+            f'- {r["ingredient__name"]}: {r["total_amount"]} '
+            f'{r["ingredient__measurement_unit"]}'
             for r in rows
         ]
         response = HttpResponse('\n'.join(lines), content_type='text/plain')

@@ -6,12 +6,11 @@ pytest.mark.integration — помечаем их как медленные ин
 from __future__ import annotations
 
 import pytest
-from django.test.utils import CaptureQueriesContext
 from django.db import connection
-from rest_framework.test import APIClient
-from rest_framework.authtoken.models import Token
-
+from django.test.utils import CaptureQueriesContext
 from recipes.models import Favorite, Recipe, RecipeIngredient, ShoppingCart
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 from users.models import Subscribe, User
 
 

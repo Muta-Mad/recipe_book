@@ -8,9 +8,7 @@ from __future__ import annotations
 
 import pytest
 from django.urls import reverse
-
 from recipes.models import Favorite
-
 
 SQL_INJECTION_PAYLOADS = [
     "'; DROP TABLE recipes_recipe; --",
@@ -125,7 +123,6 @@ def test_download_cart_only_contains_own_items(
     authenticated_client, another_authenticated_client, recipe, another_recipe, user, another_user
 ):
     """Скачанный список содержит только рецепты текущего пользователя."""
-    from users.models import User
     from recipes.models import ShoppingCart
 
     ShoppingCart.objects.create(user=user, recipe=recipe)

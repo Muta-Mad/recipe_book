@@ -18,5 +18,4 @@ pytest-cov==4.1.0
 factory-boy==3.3.0
 
 # Linting
-flake8==6.0.0
-flake8-isort==6.0.0
+ruff==0.4.4

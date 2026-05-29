@@ -5,10 +5,9 @@
 from __future__ import annotations
 
 import pytest
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
-
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import User
 
 # Минимальный 1×1 GIF (35 байт) в виде base64 data-URL

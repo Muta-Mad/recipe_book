@@ -2,15 +2,20 @@ from __future__ import annotations
 
 import random
 import string
-
 from typing import Any
 
+from api.constants import (
+    MAX_ITERATION_CODE,
+    MAX_LENGTH,
+    MAX_LENGTH_CODE,
+    MAX_LENGTH_INGREDIENT,
+    MAX_LENGTH_TAGS,
+    MAX_LENGTH_UNIT,
+    MAX_VALUE,
+    MIN_VALUE,
+)
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
-from api.constants import (MAX_ITERATION_CODE, MAX_LENGTH, MAX_LENGTH_CODE,
-                           MAX_LENGTH_INGREDIENT, MAX_LENGTH_TAGS,
-                           MAX_LENGTH_UNIT, MAX_VALUE, MIN_VALUE)
 from users.models import User
 
 

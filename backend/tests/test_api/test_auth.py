@@ -4,7 +4,6 @@ from __future__ import annotations
 import pytest
 from django.urls import reverse
 
-
 LOGIN_URL = '/api/auth/token/login/'
 LOGOUT_URL = '/api/auth/token/logout/'
 REGISTER_URL = '/api/users/'
