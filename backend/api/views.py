@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Type
+from typing import Any
 
 from django.db.models import Count, Prefetch, QuerySet
-from django.db.models import Model as DjangoModel
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend

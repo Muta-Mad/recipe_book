@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 import string
+
 from typing import Any
 
 from django.core.validators import MaxValueValidator, MinValueValidator

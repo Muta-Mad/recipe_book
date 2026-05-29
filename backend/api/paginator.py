@@ -1,4 +1,6 @@
-from rest_framework.pagination import PageNumberPagination as _PageNumberPagination
+from rest_framework.pagination import (
+    PageNumberPagination as _PageNumberPagination,
+)
 
 from api.constants import PAGE_SIZE
 
