@@ -36,7 +36,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # должен быть выше CommonMiddleware
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -65,7 +65,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
-# --- Database ----------------------------------------------------------------
 
 USE_SQLITE = os.getenv('USE_SQLITE', default='False') == 'True'
 
@@ -88,7 +87,6 @@ else:
         }
     }
 
-# --- Auth --------------------------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -102,7 +100,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = 'users.User'
 
-# --- REST Framework ----------------------------------------------------------
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'api.paginator.RecipeBookPagination',
@@ -122,7 +119,6 @@ REST_FRAMEWORK = {
     },
 }
 
-# --- Djoser ------------------------------------------------------------------
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
@@ -137,7 +133,6 @@ DJOSER = {
     },
 }
 
-# --- CORS --------------------------------------------------------------------
 
 _raw_cors = os.getenv('CORS_ALLOWED_ORIGINS', '')
 CORS_ALLOWED_ORIGINS = [o.strip() for o in _raw_cors.split(',') if o.strip()]
@@ -147,7 +142,6 @@ if DEBUG:
 
 CORS_ALLOW_CREDENTIALS = True
 
-# --- Security ----------------------------------------------------------------
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -162,7 +156,6 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 
-# --- Internationalization ----------------------------------------------------
 
 LANGUAGE_CODE = 'ru-RU'
 TIME_ZONE = 'UTC'
@@ -170,7 +163,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# --- Static / Media ----------------------------------------------------------
 
 STATIC_URL = '/static/'
 STATIC_ROOT = Path(os.getenv('STATIC_ROOT', str(BASE_DIR / 'collected_static')))
@@ -178,6 +170,5 @@ STATIC_ROOT = Path(os.getenv('STATIC_ROOT', str(BASE_DIR / 'collected_static')))
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# --- Misc --------------------------------------------------------------------
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

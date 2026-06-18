@@ -269,7 +269,6 @@ class GetSubscribeSerializer(UsersSerializer):
         fields = UsersSerializer.Meta.fields + ('recipes', 'recipes_count')
 
     def get_recipes_count(self, obj: User) -> int:
-        # Используем аннотацию если доступна (без доп. SQL)
         if hasattr(obj, 'recipes_count'):
             return obj.recipes_count  # type: ignore[attr-defined]
         return obj.recipes.count()
@@ -278,7 +277,6 @@ class GetSubscribeSerializer(UsersSerializer):
         limit_str: Optional[str] = self.context.get('request').query_params.get(
             'recipes_limit'
         )
-        # list() форсирует оценку из prefetch-кэша, избегая лишних SQL
         recipes: list = list(obj.recipes.all())
         if limit_str:
             try:
