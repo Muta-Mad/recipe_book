@@ -4,14 +4,6 @@
 
 **Платформа для публикации рецептов, подписок на авторов и составления списков покупок**
 
-[![Python](https://img.shields.io/badge/Python-3.9-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![Django](https://img.shields.io/badge/Django-3.2-092E20?style=flat-square&logo=django&logoColor=white)](https://djangoproject.com)
-[![DRF](https://img.shields.io/badge/DRF-3.12-red?style=flat-square)](https://www.django-rest-framework.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13-336791?style=flat-square&logo=postgresql&logoColor=white)](https://postgresql.org)
-[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)](https://github.com/features/actions)
-[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
-
 </div>
 
 ---
